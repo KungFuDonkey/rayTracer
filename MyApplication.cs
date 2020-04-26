@@ -30,8 +30,12 @@ namespace Template
                     rays[x + y * screen.width] = direction;
                 }
             }
-            //TODO: integrate screendistance and viewdirection so you can set a point anywhere on the grid
-            //TODO: make sure rays cant see anything in front of the screen
+            int rayTracer = GL.CreateProgram();
+            int computeShaderID = 0;
+            int compute_shader = LoadShader("../../shaders/ray-tracing.glsl",ShaderType.ComputeShader,rayTracer,computeShaderID);
+            GL.LinkProgram(rayTracer);
+
+
         }
         // tick: renders one frame
         public void Tick()
@@ -45,7 +49,17 @@ namespace Template
                 }
             }
             sphere.Update();
-            Console.WriteLine("rendered");
+            //TODO: integrate screendistance and viewdirection so you can set a point anywhere on the grid
+            //TODO: make sure rays cant see anything in front of the screen
+            //TODO: move all code into /shaders/ray-tracing.glsl
+            //      TODO: create a program that can read from the rayTracer program and fils the screen with quads that draw the image (vertexpoints -> geometryshader -> fractureshader better for memory)
+
+            //TODO: create a light source and cast ray shadows
+            //TODO: add more shapes to the scene than only 1 sphere
+            //TODO: make sure shapes in the front are rendered first
+            //TODO: create bounciness of light
+
+            //TODO: add more different shapes to the scene (square, pyramid)
         }
         public float RX(int x)
         {
@@ -58,7 +72,6 @@ namespace Template
             float horzhalf = screen.width / 2;
             return (y-verthalf) / -horzhalf;
         }
-        float a = 0;
         public void RenderGL()
         {
         }
