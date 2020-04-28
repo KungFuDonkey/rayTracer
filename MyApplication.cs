@@ -8,15 +8,15 @@ namespace Template
 	{
         // member variables
         public Surface screen;
-        Vector3 viewpoint;
-        Vector3 viewDireciton;
+        Vector3 viewPoint;
+        Vector3 viewDirection;
         float screenDistance;
         Vector3[] rays;
         sphere sphere;
         public void Init()
 		{
-            viewpoint = new Vector3(0f,0f,-1f);
-            viewDireciton = new Vector3(0f, 0f, 1f);
+            viewPoint = new Vector3(0f,0f,-1f);
+            viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
             sphere = new sphere(new Vector3(0, 0, 1), 0.5f, 0x00ff00);
             rays = new Vector3[screen.width * screen.height];
@@ -25,16 +25,17 @@ namespace Template
                 for(int x = 0; x < screen.width; x++)
                 {
                     Vector3 screenpoint = new Vector3(RX(x), RY(y), 0);
-                    Vector3 direction = screenpoint - viewpoint;
+                    Vector3 direction = screenpoint - viewPoint;
                     direction.Normalize();
                     rays[x + y * screen.width] = direction;
                 }
             }
+            /*
             int rayTracer = GL.CreateProgram();
             int computeShaderID = 0;
-            int compute_shader = LoadShader("../../shaders/ray-tracing.glsl",ShaderType.ComputeShader,rayTracer,computeShaderID);
+            int compute_shader = LoadShader("../../shaders/ray-tracing.glsl", ShaderType.ComputeShader, rayTracer, computeShaderID);
             GL.LinkProgram(rayTracer);
-
+            */
 
         }
         // tick: renders one frame
@@ -45,7 +46,7 @@ namespace Template
             {
                 for(int x = 0; x < screen.width; x++)
                 {
-                    screen.pixels[x + y * screen.width] = sphere.calcIntersection(rays[x + y * screen.width], viewpoint);
+                    screen.pixels[x + y * screen.width] = sphere.calcIntersection(rays[x + y * screen.width], viewPoint);
                 }
             }
             sphere.Update();
