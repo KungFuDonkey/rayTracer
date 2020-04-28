@@ -19,25 +19,31 @@ namespace Template
             color = _color;
         }
 
-        public int calcIntersection(Vector3 rayDirection, Vector3 rayOrigin)
+        public void rayIntersection(ray ray)
         {
-            Vector3 origin = rayOrigin - position;
-            float a = Vector3.Dot(rayDirection, rayDirection);
-            float b = 2 * Vector3.Dot(origin,rayDirection);
-            float c = Vector3.Dot(origin, origin) - (float)Math.Pow(radius,2);
-            //Console.WriteLine((b*b) + " - 4(" + a + ")(" + c + ") = " + (b*b - 4 * a * c));
-            if(b*b - 4*a*c >= 0)
+            float t = 0;
+            if(calcIntersection(ray.origin, ray.direction, ref t))
             {
-                return color;
-            }
-            else
-            {
-                return 0;
-            }
+                if(t > 0 && t < ray.t)
+                {
+                    ray.t = t;
+                    ray.color = color;
+                }
+            } 
         }
-        public void Update()
+
+        public bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
         {
-            position.Z -= 0.01f;
+            Vector3 c = position - origin;
+            t = Vector3.Dot(c, direction);
+            Vector3 q = c - t * direction;
+            float p2 = Vector3.Dot(q, q);
+            if (p2 > (radius * radius))
+                return false;
+            t -= (float)Math.Sqrt(radius * radius - p2);
+            if(t > 0)
+                return true;
+            return false;
         }
     }
 }

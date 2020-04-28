@@ -46,8 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="lightsource.cs" />
     <Compile Include="MyApplication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ray.cs" />
     <Compile Include="sphere.cs" />
     <Compile Include="surface.cs" />
     <Compile Include="template.cs" />

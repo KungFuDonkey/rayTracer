@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using OpenTK.Graphics.OpenGL;
 using OpenTK;
+using System.Collections.Generic;
 namespace Template
 {
 	class MyApplication
@@ -11,15 +12,18 @@ namespace Template
         Vector3 viewPoint;
         Vector3 viewDirection;
         float screenDistance;
-        Vector3[] rays;
-        sphere sphere;
+        ray[] rays;
+        List<sphere> spheres = new List<sphere>();
+        List<lightsource> lightsources = new List<lightsource>();
         public void Init()
 		{
             viewPoint = new Vector3(0f,0f,-1f);
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
-            sphere = new sphere(new Vector3(0, 0, 1), 0.5f, 0x00ff00);
-            rays = new Vector3[screen.width * screen.height];
+            spheres.Add(new sphere(new Vector3(0, 0, 1), 0.5f, 0x00ff00));
+            spheres.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, 0x0000ff));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0)));
+            rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
             {
                 for(int x = 0; x < screen.width; x++)
@@ -27,7 +31,7 @@ namespace Template
                     Vector3 screenpoint = new Vector3(RX(x), RY(y), 0);
                     Vector3 direction = screenpoint - viewPoint;
                     direction.Normalize();
-                    rays[x + y * screen.width] = direction;
+                    rays[x + y * screen.width] = new ray(screenpoint, direction);
                 }
             }
             /*
@@ -46,10 +50,19 @@ namespace Template
             {
                 for(int x = 0; x < screen.width; x++)
                 {
-                    screen.pixels[x + y * screen.width] = sphere.calcIntersection(rays[x + y * screen.width], viewPoint);
+                    for(int i = 0; i < spheres.Count; ++i)
+                    {
+                        spheres[i].rayIntersection(rays[x + y * screen.width]);
+                    }
+
+                    for(int i = 0; i < lightsources.Count; ++i)
+                    {
+                        lightsources[i].calcIntersection(rays[x + y * screen.width], spheres);
+                    }
+
+                    screen.pixels[x + y * screen.width] = rays[x + y * screen.width].color;
                 }
             }
-            sphere.Update();
             //TODO: integrate screendistance and viewdirection so you can set a point anywhere on the grid
             //TODO: make sure rays cant see anything in front of the screen
             //TODO: move all code into /shaders/ray-tracing.glsl
