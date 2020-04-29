@@ -7,11 +7,9 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK;
 namespace Template
 {
-    class sphere
+    class sphere : @object
     {
-        Vector3 position;
         float radius;
-        int color;
         public sphere(Vector3 _position, float _radius, int _color)
         {
             position = _position;
@@ -19,7 +17,7 @@ namespace Template
             color = _color;
         }
 
-        public void rayIntersection(ray ray)
+        public override void rayIntersection(ray ray)
         {
             float t = 0;
             if(calcIntersection(ray.origin, ray.direction, ref t))
@@ -32,9 +30,13 @@ namespace Template
             } 
         }
 
-        public bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
+        public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
         {
             Vector3 c = position - origin;
+            if(c.Length < radius)
+            {
+                return true;
+            }
             t = Vector3.Dot(c, direction);
             Vector3 q = c - t * direction;
             float p2 = Vector3.Dot(q, q);

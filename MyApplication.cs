@@ -13,15 +13,16 @@ namespace Template
         Vector3 viewDirection;
         float screenDistance;
         ray[] rays;
-        List<sphere> spheres = new List<sphere>();
+        List<@object> objects = new List<@object>();
         List<lightsource> lightsources = new List<lightsource>();
         public void Init()
 		{
             viewPoint = new Vector3(0f,0f,-1f);
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
-            spheres.Add(new sphere(new Vector3(0, 0, 1), 0.5f, 0x00ff00));
-            spheres.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, 0x0000ff));
+            objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, 0x00ff00));
+            objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, 0x0000ff));
+            objects.Add(new plane(new Vector3(-1, 0, 1.5f), new Vector3(0.5f, 0.7f, 0), 0xff0000, new Vector3(0, 0, 1)));
             lightsources.Add(new lightsource(new Vector3(0, 1, 0)));
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
@@ -50,14 +51,14 @@ namespace Template
             {
                 for(int x = 0; x < screen.width; x++)
                 {
-                    for(int i = 0; i < spheres.Count; ++i)
+                    for(int i = 0; i < objects.Count; ++i)
                     {
-                        spheres[i].rayIntersection(rays[x + y * screen.width]);
+                        objects[i].rayIntersection(rays[x + y * screen.width]);
                     }
 
                     for(int i = 0; i < lightsources.Count; ++i)
                     {
-                        lightsources[i].calcIntersection(rays[x + y * screen.width], spheres);
+                        lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
                     }
 
                     screen.pixels[x + y * screen.width] = rays[x + y * screen.width].color;
