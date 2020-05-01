@@ -9,30 +9,31 @@ namespace Template
 {
 	class plane : @object
 	{
-		Vector3 dimensions;
+		Vector2 dimensions;
 		Vector3 rotation;
 
-		public plane(Vector3 _position, Vector3 _dimensions, int _color, Vector3 _rotation)
+		public plane(Vector3 _position, Vector2 _dimensions, int _color, Vector3 _rotation)
 		{
 			position = _position;
 			dimensions = _dimensions;
 			color = _color;
 			rotation = _rotation;
-		}
+            rotation.Normalize();
+        }
 
 		public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
 		{
 			float dotProduct = Vector3.Dot(direction, rotation);
 			if (dotProduct > 1e-6)
 			{
-				t = -Vector3.Dot(origin - position - dimensions, rotation) / dotProduct;
+				t = -Vector3.Dot(origin - position, rotation) / dotProduct;
 				if(t < 0)
 				{
 					return false;
 				}
 				Vector3 p = origin + t * direction;
-				if(p.X > position.X && p.X < position.X + dimensions.X)
-					if(p.Y > position.Y && p.Y < position.Y + dimensions.Y)
+				if(p.X > position.X - 0.5 * dimensions.X && p.X < position.X + 0.5 * dimensions.X)
+					if(p.Y > position.Y - 0.5 * dimensions.Y && p.Y < position.Y + 0.5 * dimensions.Y)
 						return true;
 			}
 

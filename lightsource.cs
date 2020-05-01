@@ -27,9 +27,8 @@ namespace Template
 			Vector3 pointOfContact = ray.origin + ray.t * ray.direction;
 			Vector3 lightDirection = (position - pointOfContact);
 			float tmax = lightDirection.Length - 2 * epsilon;
-			pointOfContact += epsilon * lightDirection;
-			lightDirection.Normalize();
-
+            pointOfContact += epsilon * lightDirection;
+            lightDirection.Normalize();
 			for(int i = 0; i < objects.Count; ++i)
 			{
 				float t = 0;
@@ -39,7 +38,6 @@ namespace Template
 					{
 						continue;
 					}
-
 					ray.color = 0;
 					return;
 				}
