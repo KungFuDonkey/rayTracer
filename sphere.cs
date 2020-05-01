@@ -10,7 +10,7 @@ namespace Template
     class sphere : @object
     {
         float radius;
-        public sphere(Vector3 _position, float _radius, int _color)
+        public sphere(Vector3 _position, float _radius, Vector3 _color)
         {
             position = _position;
             radius = _radius;

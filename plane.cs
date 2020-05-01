@@ -9,13 +9,11 @@ namespace Template
 {
 	class plane : @object
 	{
-		Vector3 dimensions;
-		Vector3 rotation;
+		float d;
 
-		public plane(Vector3 _position, Vector3 _dimensions, int _color, Vector3 _rotation)
+		public plane(float _d, Vector3 _color, Vector3 _rotation)
 		{
-			position = _position;
-			dimensions = _dimensions;
+			d = -_d;
 			color = _color;
 			rotation = _rotation;
 		}
@@ -25,15 +23,8 @@ namespace Template
 			float dotProduct = Vector3.Dot(direction, rotation);
 			if (dotProduct > 1e-6)
 			{
-				t = -Vector3.Dot(origin - position - dimensions, rotation) / dotProduct;
-				if(t < 0)
-				{
-					return false;
-				}
-				Vector3 p = origin + t * direction;
-				if(p.X > position.X && p.X < position.X + dimensions.X)
-					if(p.Y > position.Y && p.Y < position.Y + dimensions.Y)
-						return true;
+				t = -(Vector3.Dot(origin, rotation) + d) / dotProduct;
+				return t >= 0;
 			}
 
 			return false;
@@ -47,6 +38,7 @@ namespace Template
 				if(t < ray.t)
 				{
 					ray.color = color;
+					ray.t = t;
 				}
 			}
 		}

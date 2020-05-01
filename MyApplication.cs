@@ -20,10 +20,12 @@ namespace Template
             viewPoint = new Vector3(0f,0f,-1f);
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
-            objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, 0x00ff00));
-            objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, 0x0000ff));
-            objects.Add(new plane(new Vector3(-1, 0, 1.5f), new Vector3(0.5f, 0.7f, 0), 0xff0000, new Vector3(0, 0, 1)));
-            lightsources.Add(new lightsource(new Vector3(0, 1, 0)));
+
+            //objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(0, 1, 0)));
+            //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
+            objects.Add(new plane(2f, new Vector3(1, 0, 0), new Vector3(0, 0, 1)));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 75));
+
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
             {
@@ -35,6 +37,28 @@ namespace Template
                     rays[x + y * screen.width] = new ray(screenpoint, direction);
                 }
             }
+
+            for (int y = 0; y < screen.height; y++)
+            {
+                for (int x = 0; x < screen.width; x++)
+                {
+                    for (int i = 0; i < objects.Count; ++i)
+                    {
+                        objects[i].rayIntersection(rays[x + y * screen.width]);
+                    }
+
+                    for (int i = 0; i < lightsources.Count; ++i)
+                    {
+                        lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
+                    }
+
+                    int r = Math.Min((int)(rays[x + y * screen.width].color.X * 255), 255);
+                    int g = Math.Min((int)(rays[x + y * screen.width].color.Y * 255), 255);
+                    int b = Math.Min((int)(rays[x + y * screen.width].color.Z * 255), 255);
+                    screen.pixels[x + y * screen.width] = (r << 16) + (g << 8) + b;
+                }
+            }
+
             /*
             int rayTracer = GL.CreateProgram();
             int computeShaderID = 0;
@@ -46,24 +70,7 @@ namespace Template
         // tick: renders one frame
         public void Tick()
         {
-            screen.Clear(0);
-            for(int y = 0; y < screen.height; y++)
-            {
-                for(int x = 0; x < screen.width; x++)
-                {
-                    for(int i = 0; i < objects.Count; ++i)
-                    {
-                        objects[i].rayIntersection(rays[x + y * screen.width]);
-                    }
-
-                    for(int i = 0; i < lightsources.Count; ++i)
-                    {
-                        lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
-                    }
-
-                    screen.pixels[x + y * screen.width] = rays[x + y * screen.width].color;
-                }
-            }
+            //screen.Clear(0);
             //TODO: integrate screendistance and viewdirection so you can set a point anywhere on the grid
             //TODO: make sure rays cant see anything in front of the screen
             //TODO: move all code into /shaders/ray-tracing.glsl

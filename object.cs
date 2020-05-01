@@ -10,7 +10,8 @@ namespace Template
 	class @object
 	{
 		protected Vector3 position;
-		protected int color;
+		protected Vector3 color;
+		protected Vector3 rotation;
 
 		public virtual bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
 		{

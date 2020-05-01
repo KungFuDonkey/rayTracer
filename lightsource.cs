@@ -11,13 +11,14 @@ namespace Template
 	{
 		public Vector3 position;
 		public float radius;
-		public int color;
+		public Vector3 color;
 		public float emittance;
 		public float epsilon = 0.01f;
 
-		public lightsource(Vector3 _position)
+		public lightsource(Vector3 _position, float _emittance)
 		{
 			position = _position;
+			emittance = _emittance;
 		}
 
 		public void calcIntersection(ray ray, List<@object> objects)
@@ -26,9 +27,13 @@ namespace Template
 				return;
 			Vector3 pointOfContact = ray.origin + ray.t * ray.direction;
 			Vector3 lightDirection = (position - pointOfContact);
+			float illumination = (float)(emittance / (4 * Math.PI * lightDirection.Length * lightDirection.Length));
+			ray.color.X *= illumination;
+			ray.color.Y *= illumination;
+			ray.color.Z *= illumination;
 			float tmax = lightDirection.Length - 2 * epsilon;
-			pointOfContact += epsilon * lightDirection;
 			lightDirection.Normalize();
+			pointOfContact += epsilon * lightDirection;
 
 			for(int i = 0; i < objects.Count; ++i)
 			{
@@ -40,7 +45,7 @@ namespace Template
 						continue;
 					}
 
-					ray.color = 0;
+					ray.color = Vector3.Zero;
 					return;
 				}
 			}
