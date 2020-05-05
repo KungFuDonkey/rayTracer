@@ -11,7 +11,7 @@ namespace Template
 	{
 		protected Vector3 position;
 		protected Vector3 color;
-		protected Vector3 rotation;
+		protected Quaternion rotation;
 
 		public virtual bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
 		{
@@ -20,7 +20,15 @@ namespace Template
 
 		public virtual void rayIntersection(ray ray)
 		{
-
+			float t = float.MaxValue;
+			if (calcIntersection(ray.origin, ray.direction, ref t))
+			{
+				if (t < ray.t)
+				{
+					ray.color = color;
+					ray.t = t;
+				}
+			}
 		}
 	}
 }

@@ -17,19 +17,6 @@ namespace Template
             color = _color;
         }
 
-        public override void rayIntersection(ray ray)
-        {
-            float t = 0;
-            if(calcIntersection(ray.origin, ray.direction, ref t))
-            {
-                if(t > 0 && t < ray.t)
-                {
-                    ray.t = t;
-                    ray.color = color;
-                }
-            } 
-        }
-
         public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
         {
             Vector3 c = position - origin;

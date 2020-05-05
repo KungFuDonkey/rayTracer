@@ -23,7 +23,7 @@ namespace Template
 
             //objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(0, 1, 0)));
             //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
-            objects.Add(new plane(2f, new Vector3(1, 0, 0), new Vector3(0, 0, 1)));
+            objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), new Vector3(1, 0, 1), new Quaternion(rad(65), 0, 0)));
             lightsources.Add(new lightsource(new Vector3(0, 1, 0), 75));
 
             rays = new ray[screen.width * screen.height];
@@ -94,6 +94,12 @@ namespace Template
             float horzhalf = screen.width / 2;
             return (y-verthalf) / -horzhalf;
         }
+
+        public float rad(float degree)
+        {
+            return (float)(degree * Math.PI / 180);
+        }
+
         public void RenderGL()
         {
         }

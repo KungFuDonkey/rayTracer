@@ -7,44 +7,43 @@ using OpenTK;
 
 namespace Template
 {
-	class box : @object
+	class box : shapes
 	{
-		Vector3 dimensions;
-		plane[] sides;
-
-		public box(Vector3 _position, Vector3 _dimensions, Vector3 _color, Vector3 _rotation)
+		public box(Vector3 _position, Vector3 _dimensions, Vector3 _color, Quaternion _rotation)
 		{
 			position = _position;
-			dimensions = _dimensions;
+			dimensions = _dimensions / 2;
 			color = _color;
 			rotation = _rotation;
 			rotation.Normalize();
 
-			sides = new plane[6];
-			sides[0] = new plane(position.Length + dimensions.Z / 2, color, rotation);
-		}
+			shape = new triangle[12];
 
-		public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
-		{
-			float[] ts = new float[6];
-			ts[0] = (position.X - origin.X) / direction.X;
-			ts[1] = (position.X + dimensions.X - origin.X) / direction.X;
-			ts[2] = (position.Y - origin.Y) / direction.Y;
-			ts[3] = (position.Y + dimensions.Y - origin.Y) / direction.Y;
-			ts[4] = (position.Z - origin.Z) / direction.Z;
-			ts[5] = (position.Z + dimensions.Z - origin.Z) / direction.Z;
+			Vector3 right = rotation * Vector3.UnitX;
+			Vector3 up = rotation * Vector3.UnitY;
+			Vector3 forward = rotation * Vector3.UnitZ;
 
-			for(int i = 0; i < 6; ++i)
-			{
-				Vector3 p = origin + direction * ts[i];
-			}
+			Vector3 ful = position - forward * dimensions.Z + up * dimensions.Y - right * dimensions.X;
+			Vector3 fur = position - forward * dimensions.Z + up * dimensions.Y + right * dimensions.X;
+			Vector3 fdl = position - forward * dimensions.Z - up * dimensions.Y - right * dimensions.X;
+			Vector3 fdr = position - forward * dimensions.Z - up * dimensions.Y + right * dimensions.X;
+			Vector3 bul = position + forward * dimensions.Z + up * dimensions.Y - right * dimensions.X;
+			Vector3 bur = position + forward * dimensions.Z + up * dimensions.Y + right * dimensions.X;
+			Vector3 bdl = position + forward * dimensions.Z - up * dimensions.Y - right * dimensions.X;
+			Vector3 bdr = position + forward * dimensions.Z - up * dimensions.Y + right * dimensions.X;
 
-			return false;
-		}
-
-		public override void rayIntersection(ray ray)
-		{
-			
+			shape[0] = new triangle(ful, fur, fdl);
+			shape[1] = new triangle(fur, fdl, fdr);
+			shape[2] = new triangle(ful, fur, bul);
+			shape[3] = new triangle(fur, bur, bul);
+			shape[4] = new triangle(fur, bur, bdr);
+			shape[5] = new triangle(fur, fdr, bdr);
+			shape[6] = new triangle(fdl, fdr, bdl);
+			shape[7] = new triangle(bdl, bdr, fdr);
+			shape[8] = new triangle(ful, bul, bdl);
+			shape[9] = new triangle(ful, fdl, bdl);
+			shape[10] = new triangle(bul, bur, bdl);
+			shape[11] = new triangle(bdl, bdr, bur);
 		}
 	}
 }
