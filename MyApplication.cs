@@ -21,11 +21,11 @@ namespace Template
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
 
-            objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(1, 1, 0)));
-            objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(1, 0, 1)));
-            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), new Vector3(1, 0, 1), new Quaternion(rad(65), 0, 0)));
-            objects.Add(new plane(3f, new Vector3(1, 1, 0), Quaternion.Identity));
-            lightsources.Add(new lightsource(new Vector3(0, 2, -2), 400));
+            //objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(0, 1, 0)));
+            //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
+            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBtoHSL(new Vector3(1, 0, 1)), new Quaternion(rad(65), 0, 0)));
+            objects.Add(new plane(2f,new Vector3(1, 1, 0), Quaternion.Identity));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 100));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
