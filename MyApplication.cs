@@ -12,6 +12,7 @@ namespace Template
         Vector3 viewPoint;
         Vector3 viewDirection;
         float screenDistance;
+        float maxLight;
         ray[] rays;
         List<@object> objects = new List<@object>();
         List<lightsource> lightsources = new List<lightsource>();
@@ -23,8 +24,9 @@ namespace Template
 
             //objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(0, 1, 0)));
             //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
-            objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), new Vector3(1, 0, 1), new Quaternion(rad(65), 0, 0)));
-            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 75));
+            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBtoHSL(new Vector3(1, 0, 1)), new Quaternion(rad(65), 0, 0)));
+            objects.Add(new plane(2f, RGBtoHSL(new Vector3(1, 1, 0)), Quaternion.Identity));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 100));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
@@ -51,11 +53,17 @@ namespace Template
                     {
                         lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
                     }
-
-                    int r = Math.Min((int)(rays[x + y * screen.width].color.X * 255), 255);
-                    int g = Math.Min((int)(rays[x + y * screen.width].color.Y * 255), 255);
-                    int b = Math.Min((int)(rays[x + y * screen.width].color.Z * 255), 255);
-                    screen.pixels[x + y * screen.width] = (r << 16) + (g << 8) + b;
+                    if(rays[x + y * screen.width].color.Z > maxLight)
+                    {
+                        maxLight = rays[x + y * screen.width].color.Z;
+                    }
+                }
+            }
+            for (int y = 0; y < screen.height; y++)
+            {
+                for (int x = 0; x < screen.width; x++)
+                {
+                    screen.pixels[x + y * screen.width] = HSLtoRGB(rays[x + y * screen.width].color);
                 }
             }
 
@@ -100,6 +108,108 @@ namespace Template
             return (float)(degree * Math.PI / 180);
         }
 
+        public Vector3 RGBtoHSL(Vector3 RGB)
+        {
+            Vector3 HSL = new Vector3();
+            float min = Math.Min(RGB.X, Math.Min(RGB.Y, RGB.Z));
+            float max = Math.Max(RGB.X, Math.Max(RGB.Y, RGB.Z));
+            HSL.Z = (min + max) / 2;
+            if(min == max)
+            {
+                HSL.Y = 0;
+            }
+            else if(HSL.Z < 0.5)
+            {
+                HSL.Y = (max - min) / (max + min);
+            }
+            else
+            {
+                HSL.Y = (max - min) / (2.0f - max - min);
+            }
+
+            if(max == RGB.X)
+            {
+                HSL.X = (RGB.Y - RGB.Z) / (max - min);
+            }
+            else if(max == RGB.Y)
+            {
+                HSL.X = 2.0f + (RGB.Z - RGB.X) / (max - min);
+            }
+            else if(max == RGB.Z)
+            {
+                HSL.X = 4.0f + (RGB.X - RGB.Y) / (max - min);
+            }
+            HSL.X *= 60;
+            HSL.Z = 0;
+            return HSL;
+        }
+        public int HSLtoRGB(Vector3 HSL)
+        {
+            float[] rgb = new float[3];
+            if(HSL.Y == 0)
+            {
+                rgb[0] = HSL.Z * 255;
+                return ((int)rgb[0] << 16) + ((int)rgb[0] << 8) + (int)rgb[0];
+            }
+
+            HSL.Z = reinhardExtended(HSL.Z);
+
+            float temp1 = 0;
+            if(HSL.Z < 0.5)
+            {
+                temp1 = HSL.Z * (1.0f + HSL.Y);
+            }
+            else
+            {
+                temp1 = HSL.Z + HSL.Y - HSL.Z * HSL.Y;
+            }
+            float temp2 = 2 * HSL.Z - temp1;
+            float hue = (float)Math.Round(HSL.X / 360, 3);
+            float[] temp = new float[3]
+            {
+                hue + 0.333f > 1 ? hue - 0.667f : hue + 0.333f,
+                hue,
+                hue - 0.333f < 0 ? hue + 0.667f : hue - 0.333f
+            };
+            for(int i = 0; i<3; ++i)
+            {
+                if(6 * temp[i] < 1)
+                {
+                    rgb[i] = temp2 + (temp1 - temp2) * 6 * temp[i];
+                }
+                else if(2 * temp[i] < 1)
+                {
+                    rgb[i] = temp1;
+                }
+                else if(3 * temp[i] < 2)
+                {
+                    rgb[i] = temp2 + (temp1 - temp2) * (0.666f - temp[i]) * 6;
+                }
+                else
+                {
+                    rgb[i] = temp2;
+                }
+                rgb[i] *= 255;
+            }
+            return ((int)rgb[0] << 16) + ((int)rgb[1] << 8) + (int)rgb[2];
+        }
+
+        public float clamp(float illumination)
+        {
+            if(illumination > 1)
+                return 1f;
+            return illumination;
+        }
+
+        public float reinhard(float illumination)
+        {
+            return illumination / (1 + illumination);
+        }
+
+        public float reinhardExtended(float illumination)
+        {
+            return illumination * (1.0f + illumination / (maxLight * maxLight)) / (1.0f + illumination);
+        }
         public void RenderGL()
         {
         }
