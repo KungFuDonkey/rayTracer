@@ -26,7 +26,7 @@ namespace Template
             //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
             //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBtoHSL(new Vector3(1, 0, 1)), new Quaternion(rad(65), 0, 0)));
             objects.Add(new plane(2f, RGBtoHSL(new Vector3(1, 1, 0)), Quaternion.Identity));
-            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 100));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 60));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
@@ -152,7 +152,10 @@ namespace Template
                 return ((int)rgb[0] << 16) + ((int)rgb[0] << 8) + (int)rgb[0];
             }
 
-            HSL.Z = reinhardExtended(HSL.Z);
+            if(maxLight > 1)
+            {
+                HSL.Z = reinhardExtended(HSL.Z);
+            }
 
             float temp1 = 0;
             if(HSL.Z < 0.5)
