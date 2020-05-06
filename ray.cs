@@ -13,13 +13,14 @@ namespace Template
 		public Vector3 direction;
 		public float t;
 		public Vector3 color;
-
+        public float illumination;
 		public ray(Vector3 _origin, Vector3 _direction)
 		{
 			origin = _origin;
 			direction = _direction;
 			t = float.MaxValue;
 			color = Vector3.Zero;
+            illumination = -2;
 		}
 	}
 }

@@ -27,14 +27,10 @@ namespace Template
 				return;
 			Vector3 pointOfContact = ray.origin + ray.t * ray.direction;
 			Vector3 lightDirection = (position - pointOfContact);
-			float illumination = (float)(emittance / (4 * Math.PI * lightDirection.Length * lightDirection.Length));
-			ray.color.X *= illumination;
-			ray.color.Y *= illumination;
-			ray.color.Z *= illumination;
-			float tmax = lightDirection.Length - 2 * epsilon;
+            float illumination = (float)(emittance / (4 * Math.PI * lightDirection.Length * lightDirection.Length));
+            float tmax = lightDirection.Length - 2 * epsilon;
 			lightDirection.Normalize();
 			pointOfContact += epsilon * lightDirection;
-
 			for(int i = 0; i < objects.Count; ++i)
 			{
 				float t = 0;
@@ -49,6 +45,7 @@ namespace Template
 					return;
 				}
 			}
-		}
+            ray.illumination += illumination;
+        }
 	}
 }

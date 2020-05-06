@@ -21,10 +21,11 @@ namespace Template
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
 
-            //objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(0, 1, 0)));
-            //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
-            objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), new Vector3(1, 0, 1), new Quaternion(rad(65), 0, 0)));
-            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 75));
+            objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(1, 1, 0)));
+            objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(1, 0, 1)));
+            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), new Vector3(1, 0, 1), new Quaternion(rad(65), 0, 0)));
+            objects.Add(new plane(3f, new Vector3(1, 1, 0), Quaternion.Identity));
+            lightsources.Add(new lightsource(new Vector3(0, 2, -2), 400));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
@@ -42,20 +43,16 @@ namespace Template
             {
                 for (int x = 0; x < screen.width; x++)
                 {
+                    ray ray = rays[x + y * screen.width];
                     for (int i = 0; i < objects.Count; ++i)
                     {
-                        objects[i].rayIntersection(rays[x + y * screen.width]);
+                        objects[i].rayIntersection(ray);
                     }
-
                     for (int i = 0; i < lightsources.Count; ++i)
                     {
-                        lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
+                        lightsources[i].calcIntersection(ray, objects);
                     }
-
-                    int r = Math.Min((int)(rays[x + y * screen.width].color.X * 255), 255);
-                    int g = Math.Min((int)(rays[x + y * screen.width].color.Y * 255), 255);
-                    int b = Math.Min((int)(rays[x + y * screen.width].color.Z * 255), 255);
-                    screen.pixels[x + y * screen.width] = (r << 16) + (g << 8) + b;
+                    screen.pixels[x + y * screen.width] = uncharted2(ray.color,ray.illumination);
                 }
             }
 
@@ -102,6 +99,52 @@ namespace Template
 
         public void RenderGL()
         {
+        }
+        Vector3 luminanceValues = new Vector3(0.2126f, 0.7152f, 0.0722f);
+        public int reinhard(Vector3 color, float illumination)
+        {
+            float factor = (float)Math.Pow(2, illumination);
+            color *= factor;
+            float l_old = Vector3.Dot(color, luminanceValues);
+            float l_new = l_old / (l_old + 1);
+            color *= (l_new / l_old);
+            return ((int)(color.X * 255) << 16) + ((int)(color.Y * 255) << 8) + (int)(color.Z * 255);
+        }
+        public int reinhardJodie(Vector3 color, float illumination)
+        {
+            float factor = (float)Math.Pow(2, illumination);
+            color *= factor;
+            float l = Vector3.Dot(color, luminanceValues);
+            Vector3 tv = colorDivision(color, floatAddition(1, color));
+            color = Vector3.Lerp(color / (1.0f + l), tv, 0.69f);
+            return ((int)(color.X * 255) << 16) + ((int)(color.Y * 255) << 8) + (int)(color.Z * 255);
+        }
+        public int uncharted2(Vector3 color, float illumination)
+        {
+            float factor = (float)Math.Pow(2, illumination);
+            color *= factor;
+            float exposure_bias = 2.0f;
+            Vector3 curr = uncharted2_tonemap_partial(color * exposure_bias);
+
+            Vector3 W = new Vector3(11.2f);
+            Vector3 whiteScale = colorDivision(Vector3.One, uncharted2_tonemap_partial(W));
+            color = curr * whiteScale;
+            return ((int)(color.X * 255) << 16) + ((int)(color.Y * 255) << 8) + (int)(color.Z * 255);
+        }
+        public Vector3 uncharted2_tonemap_partial(Vector3 x)
+        {
+            return floatAddition(-(0.02f / 0.3f), colorDivision(floatAddition(0.004f, x * floatAddition(0.05f, 0.15f * x)), floatAddition(0.06f, x * floatAddition(0.5f, 0.15f * x))));
+        }
+        public Vector3 floatAddition(float f, Vector3 vec)
+        {
+            return new Vector3(vec.X + f, vec.Y + f, vec.Z + f);
+        }
+        public Vector3 colorDivision(Vector3 left, Vector3 right)
+        {
+            float x = left.X / right.X;
+            float y = left.Y / right.Y;
+            float z = left.Z / right.Z;
+            return new Vector3(x, y, z);
         }
         void LoadShader(string name, ShaderType type, int program, out int ID)
         {
