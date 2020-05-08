@@ -41,7 +41,7 @@ namespace Template
 					if(t < ray.t)
 					{
 						ray.t = t;
-						ray.color = color;
+						ray.nextColor = color;
 						ray.normal = shape[i].getNormal(Vector3.Zero);
 						ray.absorption = absorption;
 					}

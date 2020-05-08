@@ -42,12 +42,11 @@ namespace Template
 						continue;
 					}
 
-					ray.color = Vector3.Zero;
 					return;
 				}
 			}
 
-			ray.color.Z += illumination * Vector3.Dot(ray.normal, lightDirection);
+			ray.nextColor.Z += illumination * Vector3.Dot(ray.normal, lightDirection);
 		}
 	}
 }

@@ -22,13 +22,13 @@ namespace Template
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
 
-            objects.Add(new sphere(new Vector3(0, 0, 2), 0.5f, RGBToHSL(new Vector3(0, 1, 0)), 0));
+            objects.Add(new sphere(new Vector3(0, 0, 2), 0.5f, RGBToHSL(new Vector3(0, 1, 0)), 20));
             //objects.Add(new sphere(new Vector3(0, 1f, 1), 0.3f, RGBToHSL(new Vector3(0, 0, 1)), 0));
             //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 1)), new Quaternion(rad(60), 0, 0)));
-            //objects.Add(new box(new Vector3(1, 0, 1.5f), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 0)), new Quaternion(rad(-45), rad(215), 0)));
+            //objects.Add(new box(new Vector3(0, 0, 1.5f), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 0)), new Quaternion(rad(45), rad(45), 0), 0));
             //objects.Add(new triangle(new Vector3(-1, 1, 1), new Vector3(-1, 0, 1), new Vector3(1, 0, 1), RGBToHSL(new Vector3(0, 0, 1))));
             objects.Add(new plane(1f, RGBToHSL(new Vector3(1, 0, 0)), new Quaternion(0, rad(90), 0)));
-            objects.Add(new plane(1f, RGBToHSL(new Vector3(0, 1, 0)), new Quaternion(0, rad(-90), 0)));
+            objects.Add(new plane(1f, RGBToHSL(new Vector3(1, 0, 1)), new Quaternion(0, rad(-90), 0)));
             objects.Add(new plane(1f, RGBToHSL(new Vector3(0, 0, 1)), new Quaternion(0, rad(180), 0)));
             lightsources.Add(new lightsource(new Vector3(0, 1, 0), 30));
 
@@ -47,7 +47,7 @@ namespace Template
             for(int i = 0; i < rays.Length; ++i)
             {
                 rays[i].calculateColor(objects, lightsources);
-                maxLight = rays[i].color.Z > maxLight ? rays[i].color.Z : maxLight;
+                maxLight = rays[i].nextColor.Z > maxLight ? rays[i].nextColor.Z : maxLight;
             }
 
             for(int y = 0; y < screen.height; ++y)

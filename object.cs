@@ -26,7 +26,7 @@ namespace Template
 			{
 				if (t < ray.t)
 				{
-					ray.color = color;
+					ray.nextColor = color;
 					ray.t = t;
 					ray.normal = getNormal(Vector3.Zero);
 					ray.absorption = absorption;
