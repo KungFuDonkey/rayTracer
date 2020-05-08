@@ -10,11 +10,27 @@ namespace Template
     class sphere : @object
     {
         float radius;
-        public sphere(Vector3 _position, float _radius, Vector3 _color)
+        public sphere(Vector3 _position, float _radius, Vector3 _color, float _absorption = 100)
         {
             position = _position;
             radius = _radius;
             color = _color;
+            absorption = _absorption;
+        }
+
+        public override void rayIntersection(ray ray)
+        {
+            float t = float.MaxValue;
+            if (calcIntersection(ray.origin, ray.direction, ref t))
+            {
+                if (t < ray.t)
+                {
+                    ray.color = color;
+                    ray.t = t;
+                    ray.normal = getNormal(ray.origin + ray.direction * t);
+                    ray.absorption = absorption;
+                }
+            }
         }
 
         public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
@@ -33,6 +49,13 @@ namespace Template
             if(t > 0)
                 return true;
             return false;
+        }
+
+        public override Vector3 getNormal(Vector3 pointOfIntersection)
+        {
+            Vector3 normal = pointOfIntersection - position;
+            normal.Normalize();
+            return normal;
         }
     }
 }

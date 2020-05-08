@@ -30,5 +30,23 @@ namespace Template
 
 			return intersection;
 		}
+		public override void rayIntersection(ray ray)
+		{
+			float t = float.MaxValue;
+
+			for (int i = 0; i < shape.Length; ++i)
+			{
+				if (shape[i].calcIntersection(ray.origin, ray.direction, ref t))
+				{
+					if(t < ray.t)
+					{
+						ray.t = t;
+						ray.color = color;
+						ray.normal = shape[i].getNormal(Vector3.Zero);
+						ray.absorption = absorption;
+					}
+				}
+			}
+		}
 	}
 }

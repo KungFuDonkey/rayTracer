@@ -23,10 +23,11 @@ namespace Template
 			Vector3 v1 = corner2 - corner1;
 			Vector3 v2 = corner3 - corner1;
 			normal = Vector3.Cross(v1, v2);
+			normal.Normalize();
 			d = -Vector3.Dot(normal, corner1);
 		}
 
-		public triangle(Vector3 corner1, Vector3 corner2, Vector3 corner3, Vector3 _color)
+		public triangle(Vector3 corner1, Vector3 corner2, Vector3 corner3, Vector3 _color, float _absorption = 100)
 		{
 			vertices = new Vector3[3];
 			vertices[0] = corner1;
@@ -38,6 +39,7 @@ namespace Template
 			normal = Vector3.Cross(v1, v2);
 			d = -Vector3.Dot(normal, corner1);
 			color = _color;
+			absorption = _absorption;
 		}
 
 		public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
@@ -76,6 +78,11 @@ namespace Template
 			}
 
 			return true;
+		}
+
+		public override Vector3 getNormal(Vector3 pointOfIntersection)
+		{
+			return -normal;
 		}
 	}
 }

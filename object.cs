@@ -12,6 +12,7 @@ namespace Template
 		protected Vector3 position;
 		protected Vector3 color;
 		protected Quaternion rotation;
+		protected float absorption;
 
 		public virtual bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
 		{
@@ -27,8 +28,15 @@ namespace Template
 				{
 					ray.color = color;
 					ray.t = t;
+					ray.normal = getNormal(Vector3.Zero);
+					ray.absorption = absorption;
 				}
 			}
+		}
+
+		public virtual Vector3 getNormal(Vector3 pointOfIntersection)
+		{
+			return Vector3.Zero;
 		}
 	}
 }

@@ -9,13 +9,14 @@ namespace Template
 {
 	class pyramid: shapes
 	{
-		public pyramid(Vector3 _position, Vector3 _dimensions, Vector3 _color, Quaternion _rotation)
+		public pyramid(Vector3 _position, Vector3 _dimensions, Vector3 _color, Quaternion _rotation, float _absorption = 100)
 		{
 			position = _position;
 			dimensions = _dimensions * 0.5f;
 			color = _color;
 			rotation = _rotation;
 			rotation.Normalize();
+			absorption = _absorption;
 
 			shape = new triangle[6];
 
@@ -30,11 +31,11 @@ namespace Template
 			Vector3 br = position - up * dimensions.Y + right * dimensions.X + forward * dimensions.Z;
 
 			shape[0] = new triangle(u, fl, fr);
-			shape[1] = new triangle(u, fl, bl);
+			shape[1] = new triangle(u, bl, fl);
 			shape[2] = new triangle(u, fr, br);
-			shape[3] = new triangle(u, bl, br);
+			shape[3] = new triangle(u, br, bl);
 			shape[4] = new triangle(fl, bl, br);
-			shape[5] = new triangle(fl, fr, br);
+			shape[5] = new triangle(fl, br, fr);
 		}
 	}
 }

@@ -22,11 +22,15 @@ namespace Template
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
 
-            objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, RGBToHSL(new Vector3(0, 1, 0))));
-            objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, RGBToHSL(new Vector3(0, 0, 1))));
-            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 1)), new Quaternion(rad(65), 0, 0)));
-            objects.Add(new plane(2f, RGBToHSL(new Vector3(1, 0, 0)), Quaternion.Identity));
-            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 10));
+            objects.Add(new sphere(new Vector3(0, 0, 2), 0.5f, RGBToHSL(new Vector3(0, 1, 0)), 0));
+            //objects.Add(new sphere(new Vector3(0, 1f, 1), 0.3f, RGBToHSL(new Vector3(0, 0, 1)), 0));
+            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 1)), new Quaternion(rad(60), 0, 0)));
+            //objects.Add(new box(new Vector3(1, 0, 1.5f), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 0)), new Quaternion(rad(-45), rad(215), 0)));
+            //objects.Add(new triangle(new Vector3(-1, 1, 1), new Vector3(-1, 0, 1), new Vector3(1, 0, 1), RGBToHSL(new Vector3(0, 0, 1))));
+            objects.Add(new plane(1f, RGBToHSL(new Vector3(1, 0, 0)), new Quaternion(0, rad(90), 0)));
+            objects.Add(new plane(1f, RGBToHSL(new Vector3(0, 1, 0)), new Quaternion(0, rad(-90), 0)));
+            objects.Add(new plane(1f, RGBToHSL(new Vector3(0, 0, 1)), new Quaternion(0, rad(180), 0)));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 30));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
@@ -40,25 +44,10 @@ namespace Template
                 }
             }
 
-            for (int y = 0; y < screen.height; y++)
+            for(int i = 0; i < rays.Length; ++i)
             {
-                for (int x = 0; x < screen.width; x++)
-                {
-                    for (int i = 0; i < objects.Count; ++i)
-                    {
-                        objects[i].rayIntersection(rays[x + y * screen.width]);
-                    }
-
-                    for (int i = 0; i < lightsources.Count; ++i)
-                    {
-                        lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
-                    }
-
-                    if(rays[x + y * screen.width].color.Z > maxLight)
-                    {
-                        maxLight = rays[x + y * screen.width].color.Z;
-                    }
-                }
+                rays[i].calculateColor(objects, lightsources);
+                maxLight = rays[i].color.Z > maxLight ? rays[i].color.Z : maxLight;
             }
 
             for(int y = 0; y < screen.height; ++y)

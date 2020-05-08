@@ -13,7 +13,7 @@ namespace Template
 		public float radius;
 		public Vector3 color;
 		public float emittance;
-		public float epsilon = 0.01f;
+		public float epsilon = 0.000001f;
 
 		public lightsource(Vector3 _position, float _emittance)
 		{
@@ -47,7 +47,7 @@ namespace Template
 				}
 			}
 
-			ray.color.Z += illumination;
+			ray.color.Z += illumination * Vector3.Dot(ray.normal, lightDirection);
 		}
 	}
 }
