@@ -16,7 +16,7 @@ namespace Template
 		{
 			d = -_d;
 			color = _color;
-			rotation = _rotation;
+			normal = _rotation * Vector3.UnitZ;
 		}
 
 		public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)

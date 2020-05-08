@@ -12,6 +12,7 @@ namespace Template
         Vector3 viewPoint;
         Vector3 viewDirection;
         float screenDistance;
+        float maxLight;
         ray[] rays;
         List<@object> objects = new List<@object>();
         List<lightsource> lightsources = new List<lightsource>();
@@ -21,10 +22,11 @@ namespace Template
             viewDirection = new Vector3(0f, 0f, 1f);
             screenDistance = 1f;
 
-            //objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, new Vector3(0, 1, 0)));
-            //objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, new Vector3(0, 0, 1)));
-            objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), new Vector3(1, 0, 1), new Quaternion(rad(65), 0, 0)));
-            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 75));
+            objects.Add(new sphere(new Vector3(0, 0, 1), 0.5f, RGBToHSL(new Vector3(0, 1, 0))));
+            objects.Add(new sphere(new Vector3(0.5f, 0.5f, 1), 0.3f, RGBToHSL(new Vector3(0, 0, 1))));
+            //objects.Add(new pyramid(new Vector3(0, 0, 2), new Vector3(1, 1, 1), RGBToHSL(new Vector3(1, 0, 1)), new Quaternion(rad(65), 0, 0)));
+            objects.Add(new plane(2f, RGBToHSL(new Vector3(1, 0, 0)), Quaternion.Identity));
+            lightsources.Add(new lightsource(new Vector3(0, 1, 0), 10));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)
@@ -52,10 +54,18 @@ namespace Template
                         lightsources[i].calcIntersection(rays[x + y * screen.width], objects);
                     }
 
-                    int r = Math.Min((int)(rays[x + y * screen.width].color.X * 255), 255);
-                    int g = Math.Min((int)(rays[x + y * screen.width].color.Y * 255), 255);
-                    int b = Math.Min((int)(rays[x + y * screen.width].color.Z * 255), 255);
-                    screen.pixels[x + y * screen.width] = (r << 16) + (g << 8) + b;
+                    if(rays[x + y * screen.width].color.Z > maxLight)
+                    {
+                        maxLight = rays[x + y * screen.width].color.Z;
+                    }
+                }
+            }
+
+            for(int y = 0; y < screen.height; ++y)
+            {
+                for(int x = 0; x < screen.width; ++x)
+                {
+                    screen.pixels[x + y * screen.width] = HSLToRGB(rays[x + y * screen.width].color);
                 }
             }
 
@@ -70,18 +80,7 @@ namespace Template
         // tick: renders one frame
         public void Tick()
         {
-            //screen.Clear(0);
-            //TODO: integrate screendistance and viewdirection so you can set a point anywhere on the grid
-            //TODO: make sure rays cant see anything in front of the screen
-            //TODO: move all code into /shaders/ray-tracing.glsl
-            //      TODO: create a program that can read from the rayTracer program and fils the screen with quads that draw the image (vertexpoints -> geometryshader -> fractureshader better for memory)
 
-            //TODO: create a light source and cast ray shadows
-            //TODO: add more shapes to the scene than only 1 sphere
-            //TODO: make sure shapes in the front are rendered first
-            //TODO: create bounciness of light
-
-            //TODO: add more different shapes to the scene (square, pyramid)
         }
         public float RX(int x)
         {
@@ -111,6 +110,92 @@ namespace Template
             GL.CompileShader(ID);
             GL.AttachShader(program, ID);
             Console.WriteLine(GL.GetShaderInfoLog(ID));
+        }
+
+        Vector3 RGBToHSL(Vector3 RGB)
+        {
+            Vector3 HSL = new Vector3();
+            float min = Math.Min(RGB.X, Math.Min(RGB.Y, RGB.Z));
+            float max = Math.Max(RGB.X, Math.Max(RGB.Y, RGB.Z));
+            HSL.Z = (min + max) / 2;
+
+            if (min == max)
+            {
+                HSL.Y = 0;
+            }
+            else if (HSL.Z < 0.5)
+            {
+                HSL.Y = (max - min) / (max + min);
+            }
+            else
+            {
+                HSL.Y = (max - min) / (2.0f - max - min);
+            }
+
+            if(max == RGB.X)
+            {
+                HSL.X = (RGB.Y - RGB.Z) / (max - min);
+            }
+            else if(max == RGB.Y)
+            {
+                HSL.X = 2.0f + (RGB.Z - RGB.X) / (max - min);
+            }
+            else
+            {
+                HSL.X = 4.0f + (RGB.X - RGB.Y) / (max - min);
+            }
+
+            HSL.X *= 60;
+            HSL.X = HSL.X < 0 ? HSL.X + 360 : HSL.X;
+            HSL.Z = 0;
+            return HSL;
+        }
+
+        int HSLToRGB(Vector3 HSL)
+        {
+            float[] RGB = new float[3];
+
+            if(HSL.Y == 0)
+            {
+                RGB[0] = HSL.Z * 255;
+                return ((int)RGB[0] << 16) + ((int)RGB[0] << 8) + (int)RGB[0];
+            }
+
+            if(maxLight > 1)
+            {
+                HSL.Z = HSL.Z * (1.0f + HSL.Z / (maxLight * maxLight)) / (1.0f + HSL.Z);
+            }
+
+            float temp1 = HSL.Z < 0.5 ? HSL.Z * (1.0f + HSL.Y) : HSL.Z + HSL.Y - HSL.Z * HSL.Y;
+            float temp2 = 2 * HSL.Z - temp1;
+            float hue = (float)Math.Round(HSL.X / 360, 3);
+            RGB[0] = hue + 0.333f > 1 ? hue - 0.667f : hue + 0.333f;
+            RGB[1] = hue;
+            RGB[2] = hue - 0.333f < 0 ? hue + 0.667f : hue - 0.333f;
+
+            for(int i = 0; i < 3; ++i)
+            {
+                if(6 * RGB[i] < 1)
+                {
+                    RGB[i] = temp2 + (temp1 - temp2) * 6 * RGB[i];
+                }
+                else if(2 * RGB[i] < 1)
+                {
+                    RGB[i] = temp1;
+                }
+                else if(3 * RGB[i] < 2)
+                {
+                    RGB[i] = temp2 + (temp1 - temp2) * (0.666f - RGB[i]) * 6;
+                }
+                else
+                {
+                    RGB[i] = temp2;
+                }
+
+                RGB[i] *= 255;
+            }
+
+            return ((int)RGB[0] << 16) + ((int)RGB[1] << 8) + (int)RGB[2];
         }
     }
 }
