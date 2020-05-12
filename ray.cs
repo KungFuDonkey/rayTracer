@@ -46,35 +46,38 @@ namespace Template
             {
                 lightsources[i].rayIntersection(this);
             }
-
-            pointOfIntersection = origin + t * direction;
-            nextColor = RGBToHSL(nextColor);            
-
-            for(int i = 0; i < lightsources.Count; ++i)
+            if(t != float.MaxValue)
             {
-                lightsources[i].calcIntersection(this, objects);
-            }
+                pointOfIntersection = origin + t * direction;
+                nextColor = RGBToHSL(nextColor);
 
-            nextColor.Z = (-1 / (1 + nextColor.Z)) + 1;
-            nextColor = HSLToRGB(nextColor);
-            color += energy * nextColor * (absorption / 100);
-
-            if(absorption != 100)
-            {
-                if(iteration == 5)
+                for (int i = 0; i < lightsources.Count; ++i)
                 {
-                    return;
+                    lightsources[i].calcIntersection(this, objects);
                 }
 
-                energy *= nextColor;
-                origin = pointOfIntersection;
-                direction = direction - 2 * Vector3.Dot(normal, direction) * normal;
-                origin += direction * 0.00001f;
-                t = float.MaxValue;
-                calculateColor(objects, lightsources, iteration);
+                nextColor.Z = (-1 / (1 + nextColor.Z)) + 1;
+                nextColor = HSLToRGB(nextColor);
+                color += energy * nextColor * (absorption / 100);
+
+                if (absorption != 100)
+                {
+                    if (iteration == 5)
+                    {
+                        return;
+                    }
+
+                    energy *= nextColor;
+                    origin = pointOfIntersection;
+                    direction = direction - 2 * Vector3.Dot(normal, direction) * normal;
+                    origin += direction * 0.00001f;
+                    t = float.MaxValue;
+                    calculateColor(objects, lightsources, iteration);
+                }
+
             }
 
-            if(iteration == 1)
+            if (iteration == 1)
             {
                 color.X = color.X > 1 ? 1 : color.X;
                 color.Y = color.Y > 1 ? 1 : color.Y;

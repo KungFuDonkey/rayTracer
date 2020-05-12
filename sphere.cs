@@ -36,10 +36,9 @@ namespace Template
         public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
         {
             Vector3 conversion = origin - position;
-            float a = Vector3.Dot(direction, direction);
             float b = 2.0f * Vector3.Dot(conversion, direction);
             float c = Vector3.Dot(conversion, conversion) - radius * radius;
-            float discriminant = b * b - 4 * a * c;
+            float discriminant = b * b - 4 * c;
 
             if(discriminant < 0)
             {
@@ -47,13 +46,17 @@ namespace Template
             }
             else
             {
-                t = (float)((-b - Math.Sqrt(discriminant)) / (2 * a));
+                t = (float)((-b - Math.Sqrt(discriminant)) / (2));
 
                 if(t < 0)
                 {
-                    t = (float)((b + Math.Sqrt(discriminant)) / (2 * a));
+                    t = (float)((-b + Math.Sqrt(discriminant)) / (2));
                 }
 
+                if(t < 0)
+                {
+                    return false;
+                }
                 return true;
             }
         }
