@@ -9,8 +9,8 @@ namespace Template
 {
 	class @object
 	{
-		protected Vector3 position;
-		protected Vector3 color;
+		public Vector3 position;
+		public Vector3 color;
 		protected Quaternion rotation;
 		protected float absorption;
 
