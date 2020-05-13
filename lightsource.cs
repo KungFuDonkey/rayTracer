@@ -43,7 +43,7 @@ namespace Template
 				}
 			}
 
-			ray.color += illumination * Vector3.Dot(ray.normal, lightDirection) * shape.color * ray.nextColor * ray.energy * ray.absorption / 100;
+			ray.color += illumination * Vector3.Dot(ray.normal, lightDirection) * shape.color * ray.energy * ray.absorption / 100;
 		}
 
 		public void rayIntersection(ray ray)

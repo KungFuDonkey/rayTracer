@@ -46,11 +46,11 @@ namespace Template
             }
             else
             {
-                t = (float)((-b - Math.Sqrt(discriminant)) / (2));
+                t = (float)((-b - Math.Sqrt(discriminant)) / 2);
 
                 if(t < 0)
                 {
-                    t = (float)((-b + Math.Sqrt(discriminant)) / (2 * a));
+                    t = (float)((-b + Math.Sqrt(discriminant)) / 2);
 
                     if(t < 0)
                     {

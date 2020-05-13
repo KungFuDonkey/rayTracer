@@ -43,55 +43,44 @@ namespace Template
                 objects[i].rayIntersection(this);
             }
 
-            if(t == float.MaxValue)
-            {
-                return;
-            }
-
-            energy *= nextColor;
-
             for (int i = 0; i < lightsources.Count; ++i)
             {
                 lightsources[i].rayIntersection(this);
             }
-            if(t != float.MaxValue)
+            if (t != float.MaxValue)
             {
+
                 pointOfIntersection = origin + t * direction;
-                nextColor = RGBToHSL(nextColor);
+                energy *= nextColor;
 
-            pointOfIntersection = origin + t * direction;
+                for(int i = 0; i < lightsources.Count; ++i)
+                {
+                    lightsources[i].calcIntersection(this, objects);
+                }
 
-                nextColor.Z = (-1 / (1 + nextColor.Z)) + 1;
-                nextColor = HSLToRGB(nextColor);
-                color += energy * nextColor * (absorption / 100);
+                if(absorption != 100)
+                {
+                    if (iteration == 5)
+                    {
+                        return;
+                    }
 
-            color.X = (-1 / (color.X + 1) + 1) * 1.5f;
-            color.Y = (-1 / (color.Y + 1) + 1) * 1.5f;
-            color.Z = (-1 / (color.Z + 1) + 1) * 1.5f;
-
-                    energy *= nextColor;
                     origin = pointOfIntersection;
                     direction = direction - 2 * Vector3.Dot(normal, direction) * normal;
                     origin += direction * 0.00001f;
                     t = float.MaxValue;
                     calculateColor(objects, lightsources, iteration);
                 }
-
-                origin = pointOfIntersection;
-                direction = direction - 2 * Vector3.Dot(normal, direction) * normal;
-                origin += direction * 0.00001f;
-                t = float.MaxValue;
-                calculateColor(objects, lightsources, iteration);
             }
 
-            if (iteration == 1)
+            if(iteration == 1)
             {
-                color.X = color.X > 1 ? 1 : color.X;
-                color.Y = color.Y > 1 ? 1 : color.Y;
-                color.Z = color.Z > 1 ? 1 : color.Z;
+                color.X = (-1 / (1 + color.X) + 1);
+                color.Y = (-1 / (1 + color.Y) + 1);
+                color.Z = (-1 / (1 + color.Z) + 1);
                 result = ((int)(color.X * 255) << 16) + ((int)(color.Y * 255) << 8) + (int)(color.Z * 255);
             }
-		}
+        }
 
         Vector3 RGBToHSL(Vector3 RGB)
         {

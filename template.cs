@@ -31,7 +31,7 @@ namespace Template
 		{
 			// called during application initialization
 			GL.Hint( HintTarget.PerspectiveCorrectionHint, HintMode.Nicest );
-			ClientSize = new Size( 2550, 1430 );
+			ClientSize = new Size( 640, 400 );
 			app = new MyApplication();
 			app.screen = new Surface( Width, Height );
 			Sprite.target = app.screen;
