@@ -20,20 +20,17 @@ namespace Template
 
         public override void rayIntersection(ray ray)
         {
-            float t = float.MaxValue;
-            if (calcIntersection(ray.origin, ray.direction, ref t))
+            float t = calcIntersection(ray.origin, ray.direction);
+            if (t < ray.t && t > 0)
             {
-                if (t < ray.t)
-                {
-                    ray.nextColor = color;
-                    ray.t = t;
-                    ray.normal = getNormal(ray.origin + ray.direction * t);
-                    ray.absorption = absorption;
-                }
+                ray.nextColor = color;
+                ray.t = t;
+                ray.normal = getNormal(ray.origin + ray.direction * t);
+                ray.absorption = absorption;
             }
         }
 
-        public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
+        public override float calcIntersection(Vector3 origin, Vector3 direction)
         {
             Vector3 conversion = origin - position;
             float b = 2.0f * Vector3.Dot(conversion, direction);
@@ -42,27 +39,18 @@ namespace Template
 
             if(discriminant < 0)
             {
-                return false;
+                return -1;
             }
             else
             {
-                t = (float)((-b - Math.Sqrt(discriminant)) / 2);
+                float t = (float)((-b - Math.Sqrt(discriminant)) / 2);
 
                 if(t < 0)
                 {
                     t = (float)((-b + Math.Sqrt(discriminant)) / 2);
-
-                    if(t < 0)
-                    {
-                        return false;
-                    }
                 }
 
-                if(t < 0)
-                {
-                    return false;
-                }
-                return true;
+                return t;
             }
         }
 

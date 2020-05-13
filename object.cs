@@ -14,23 +14,21 @@ namespace Template
 		protected Quaternion rotation;
 		protected float absorption;
 
-		public virtual bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
+		public virtual float calcIntersection(Vector3 origin, Vector3 direction)
 		{
-			return false;
+			return -1;
 		}
 
 		public virtual void rayIntersection(ray ray)
 		{
-			float t = float.MaxValue;
-			if (calcIntersection(ray.origin, ray.direction, ref t))
+			float t = calcIntersection(ray.origin, ray.direction);
+
+			if (t < ray.t && t > 0)
 			{
-				if (t < ray.t)
-				{
-					ray.nextColor = color;
-					ray.t = t;
-					ray.normal = getNormal(Vector3.Zero);
-					ray.absorption = absorption;
-				}
+				ray.nextColor = color;
+				ray.t = t;
+				ray.normal = getNormal(Vector3.Zero);
+				ray.absorption = absorption;
 			}
 		}
 

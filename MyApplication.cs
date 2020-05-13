@@ -29,7 +29,7 @@ namespace Template
             objects.Add(new plane(1f, new Vector3(1, 0, 0), new Quaternion(0, rad(90), 0), 20));
             objects.Add(new plane(1f, new Vector3(0, 1, 0), new Quaternion(0, rad(-90), 0), 20));
             objects.Add(new plane(1f, new Vector3(0, 0, 1), new Quaternion(0, rad(180), 0), 20));
-            lightsources.Add(new lightsource(80, new box(new Vector3(0, 1, 0), new Vector3(0.2f, 0.2f, 0.2f), new Vector3(1, 1, 0), Quaternion.Identity)));
+            lightsources.Add(new arealight(80, new box(new Vector3(0, 1, 0), new Vector3(0.2f, 0.2f, 0.2f), new Vector3(1, 1, 0), Quaternion.Identity)));
 
             rays = new ray[screen.width * screen.height];
             for(int y = 0; y < screen.height; y++)

@@ -46,7 +46,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="arealight.cs" />
     <Compile Include="box.cs" />
+    <Compile Include="directionalLight.cs" />
     <Compile Include="lightsource.cs" />
     <Compile Include="MyApplication.cs" />
     <Compile Include="object.cs" />

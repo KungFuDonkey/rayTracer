@@ -20,16 +20,16 @@ namespace Template
 			absorption = _absorption;
 		}
 
-		public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
+		public override float calcIntersection(Vector3 origin, Vector3 direction)
 		{
 			float dotProduct = Vector3.Dot(direction, normal);
 			if (dotProduct > 1e-6)
 			{
-				t = -(Vector3.Dot(origin, normal) + d) / dotProduct;
-				return t >= 0;
+				float t = -(Vector3.Dot(origin, normal) + d) / dotProduct;
+				return t;
 			}
 
-			return false;
+			return -1;
 		}
 
 		public override Vector3 getNormal(Vector3 pointOfIntersection)

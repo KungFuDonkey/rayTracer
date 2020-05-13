@@ -14,37 +14,34 @@ namespace Template
 		protected triangle[] shape;
 
 
-		public override bool calcIntersection(Vector3 origin, Vector3 direction, ref float t)
-		{
-			bool intersection = false;
-
-			for(int i = 0; i < shape.Length; ++i)
-			{
-				float s = float.MaxValue;
-				if (shape[i].calcIntersection(origin, direction, ref s))
-				{
-					t = s < t ? s : t;
-					intersection = true;
-				}
-			}
-
-			return intersection;
-		}
-		public override void rayIntersection(ray ray)
+		public override float calcIntersection(Vector3 origin, Vector3 direction)
 		{
 			float t = float.MaxValue;
 
+			for(int i = 0; i < shape.Length; ++i)
+			{
+				float s = shape[i].calcIntersection(origin, direction);
+				if (s > 0)
+				{
+					t = s < t ? s : t;
+				}
+			}
+
+			return t;
+		}
+		public override void rayIntersection(ray ray)
+		{
+
 			for (int i = 0; i < shape.Length; ++i)
 			{
-				if (shape[i].calcIntersection(ray.origin, ray.direction, ref t))
+				float t = shape[i].calcIntersection(ray.origin, ray.direction);
+
+				if(t < ray.t && t > 0)
 				{
-					if(t < ray.t)
-					{
-						ray.t = t;
-						ray.nextColor = color;
-						ray.normal = shape[i].getNormal(Vector3.Zero);
-						ray.absorption = absorption;
-					}
+					ray.t = t;
+					ray.nextColor = color;
+					ray.normal = shape[i].getNormal(Vector3.Zero);
+					ray.absorption = absorption;
 				}
 			}
 		}
