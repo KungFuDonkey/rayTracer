@@ -20,6 +20,7 @@ namespace Template
         public int result;
         public Vector3 pointOfIntersection;
         public Vector3 energy;
+        public float lighting;
 
 		public ray(Vector3 _origin, Vector3 _direction)
 		{
@@ -42,7 +43,14 @@ namespace Template
                 objects[i].rayIntersection(this);
             }
 
-            for(int i = 0; i < lightsources.Count; ++i)
+            if(t == float.MaxValue)
+            {
+                return;
+            }
+
+            energy *= nextColor;
+
+            for (int i = 0; i < lightsources.Count; ++i)
             {
                 lightsources[i].rayIntersection(this);
             }
@@ -51,21 +59,15 @@ namespace Template
                 pointOfIntersection = origin + t * direction;
                 nextColor = RGBToHSL(nextColor);
 
-                for (int i = 0; i < lightsources.Count; ++i)
-                {
-                    lightsources[i].calcIntersection(this, objects);
-                }
+            pointOfIntersection = origin + t * direction;
 
                 nextColor.Z = (-1 / (1 + nextColor.Z)) + 1;
                 nextColor = HSLToRGB(nextColor);
                 color += energy * nextColor * (absorption / 100);
 
-                if (absorption != 100)
-                {
-                    if (iteration == 5)
-                    {
-                        return;
-                    }
+            color.X = (-1 / (color.X + 1) + 1) * 1.5f;
+            color.Y = (-1 / (color.Y + 1) + 1) * 1.5f;
+            color.Z = (-1 / (color.Z + 1) + 1) * 1.5f;
 
                     energy *= nextColor;
                     origin = pointOfIntersection;
@@ -75,6 +77,11 @@ namespace Template
                     calculateColor(objects, lightsources, iteration);
                 }
 
+                origin = pointOfIntersection;
+                direction = direction - 2 * Vector3.Dot(normal, direction) * normal;
+                origin += direction * 0.00001f;
+                t = float.MaxValue;
+                calculateColor(objects, lightsources, iteration);
             }
 
             if (iteration == 1)

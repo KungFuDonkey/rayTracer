@@ -50,7 +50,12 @@ namespace Template
 
                 if(t < 0)
                 {
-                    t = (float)((-b + Math.Sqrt(discriminant)) / (2));
+                    t = (float)((-b + Math.Sqrt(discriminant)) / (2 * a));
+
+                    if(t < 0)
+                    {
+                        return false;
+                    }
                 }
 
                 if(t < 0)
