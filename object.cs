@@ -14,14 +14,14 @@ namespace Template
 		protected Quaternion rotation;
 		protected float absorption;
 
-		public virtual float calcIntersection(Vector3 origin, Vector3 direction)
+		public virtual float calcIntersection(Vector3 origin, Vector3 direction, bool lightray)
 		{
 			return -1;
 		}
 
 		public virtual void rayIntersection(ray ray)
 		{
-			float t = calcIntersection(ray.origin, ray.direction);
+			float t = calcIntersection(ray.origin, ray.direction, false);
 
 			if (t < ray.t && t > 0)
 			{

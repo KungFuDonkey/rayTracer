@@ -12,29 +12,11 @@ namespace Template
 	{
 		protected Vector3 dimensions;
 		protected triangle[] shape;
-
-
-		public override float calcIntersection(Vector3 origin, Vector3 direction)
-		{
-			float t = float.MaxValue;
-
-			for(int i = 0; i < shape.Length; ++i)
-			{
-				float s = shape[i].calcIntersection(origin, direction);
-				if (s > 0)
-				{
-					t = s < t ? s : t;
-				}
-			}
-
-			return t;
-		}
 		public override void rayIntersection(ray ray)
 		{
-
 			for (int i = 0; i < shape.Length; ++i)
 			{
-				float t = shape[i].calcIntersection(ray.origin, ray.direction);
+				float t = shape[i].calcIntersection(ray.origin, ray.direction, false);
 
 				if(t < ray.t && t > 0)
 				{

@@ -50,6 +50,8 @@
     <Compile Include="box.cs" />
     <Compile Include="directionalLight.cs" />
     <Compile Include="lightsource.cs" />
+    <Compile Include="mesh.cs" />
+    <Compile Include="obj.cs" />
     <Compile Include="MyApplication.cs" />
     <Compile Include="object.cs" />
     <Compile Include="plane.cs" />

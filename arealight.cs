@@ -23,19 +23,21 @@ namespace Template
 				return;
 			Vector3 lightDirection = (shape.position - ray.pointOfIntersection);
 			float illumination = (float)(emittance / (4 * Math.PI * lightDirection.Length * lightDirection.Length));
-			float tmax = lightDirection.Length - 2 * epsilon;
+            float angle = Vector3.Dot(ray.normal, lightDirection);
+            if (angle < 0)
+                return;
+            float tmax = lightDirection.Length - 2 * epsilon;
 			lightDirection.Normalize();
 			ray.pointOfIntersection += epsilon * lightDirection;
 
 			for (int i = 0; i < objects.Count; ++i)
 			{
-				float t = objects[i].calcIntersection(ray.pointOfIntersection, lightDirection);
+				float t = objects[i].calcIntersection(ray.pointOfIntersection, lightDirection, true);
 				if (t > 0 && t < tmax)
 				{
 					return;
 				}
 			}
-
 			ray.color += illumination * Vector3.Dot(ray.normal, lightDirection) * shape.color * ray.energy * ray.absorption / 100;
 		}
 

@@ -11,7 +11,7 @@ namespace Template
 	class lightsource
 	{
 		public float emittance;
-		public float epsilon = 0.00001f;
+		public float epsilon = 0.0001f;
 
 		public virtual void calcIntersection(ray ray, List<@object> objects)
 		{

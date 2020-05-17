@@ -75,11 +75,12 @@ namespace Template
 
             if(iteration == 1)
             {
-                color.X = (-1 / (1 + color.X) + 1);
-                color.Y = (-1 / (1 + color.Y) + 1);
-                color.Z = (-1 / (1 + color.Z) + 1);
+                color.X = (-1 / (1 + color.X)) + 1;
+                color.Y = (-1 / (1 + color.Y)) + 1;
+                color.Z = (-1 / (1 + color.Z)) + 1;
                 result = ((int)(color.X * 255) << 16) + ((int)(color.Y * 255) << 8) + (int)(color.Z * 255);
             }
+
         }
 
         Vector3 RGBToHSL(Vector3 RGB)

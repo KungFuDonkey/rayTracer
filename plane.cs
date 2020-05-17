@@ -20,7 +20,7 @@ namespace Template
 			absorption = _absorption;
 		}
 
-		public override float calcIntersection(Vector3 origin, Vector3 direction)
+		public override float calcIntersection(Vector3 origin, Vector3 direction, bool lightray)
 		{
 			float dotProduct = Vector3.Dot(direction, normal);
 			if (dotProduct > 1e-6)

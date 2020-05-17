@@ -20,7 +20,7 @@ namespace Template
 
         public override void rayIntersection(ray ray)
         {
-            float t = calcIntersection(ray.origin, ray.direction);
+            float t = calcIntersection(ray.origin, ray.direction, false);
             if (t < ray.t && t > 0)
             {
                 ray.nextColor = color;
@@ -30,7 +30,7 @@ namespace Template
             }
         }
 
-        public override float calcIntersection(Vector3 origin, Vector3 direction)
+        public override float calcIntersection(Vector3 origin, Vector3 direction, bool lightray)
         {
             Vector3 conversion = origin - position;
             float b = 2.0f * Vector3.Dot(conversion, direction);
