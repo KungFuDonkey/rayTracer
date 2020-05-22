@@ -11,8 +11,9 @@ namespace Template
 	class shapes : @object
 	{
 		protected Vector3 dimensions;
-		protected triangle[] shape;
-		public override void rayIntersection(ray ray)
+		public triangle[] shape;
+        public Vector3[] vertices;
+        public override void rayIntersection(ray ray)
 		{
 			for (int i = 0; i < shape.Length; ++i)
 			{
@@ -20,12 +21,21 @@ namespace Template
 
 				if(t < ray.t && t > 0)
 				{
-					ray.t = t;
-					ray.nextColor = color;
-					ray.normal = shape[i].getNormal(Vector3.Zero);
-					ray.absorption = absorption;
 				}
 			}
 		}
-	}
+        public override void AddToArray(ref List<float> array)
+        {
+            for (int i = 0; i < shape.Length; ++i)
+            {
+                shape[i].changeIndex(array.Count);
+            }
+            for (int i = 0; i < vertices.Length; ++i)
+            {
+                array.Add(vertices[i].X);
+                array.Add(vertices[i].Y);
+                array.Add(vertices[i].Z);
+            }
+        }
+    }
 }

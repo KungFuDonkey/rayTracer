@@ -12,11 +12,12 @@ namespace Template
 		float d;
 		Vector3 normal;
 
-		public plane(float _d, Vector3 _color, Quaternion _rotation, float _absorption = 100)
+		public plane(float _d, int _color, Quaternion _rotation, float _absorption = 100)
 		{
 			d = -_d;
 			color = _color;
 			normal = _rotation * Vector3.UnitZ;
+            normal.Normalize();
 			absorption = _absorption;
 		}
 
@@ -36,5 +37,15 @@ namespace Template
 		{
 			return -normal;
 		}
-	}
+
+        public override void AddToArray(ref List<float> array)
+        {
+            array.Add(normal.X);
+            array.Add(normal.Y);
+            array.Add(normal.Z);
+            array.Add(d);
+            array.Add(color);
+            array.Add(absorption);
+        }
+    }
 }

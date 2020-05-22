@@ -10,13 +10,13 @@ namespace Template
     class obj 
     {
         public triangle[] shape;
+        public Vector3[] vertex;
         public Vector3 dimensions;
         public obj(string name)
         {
             string[] lines = File.ReadAllLines(name);
             float[] minmax = new float[6];
             List<Vector3> vertices = new List<Vector3>();
-            List<Vector3> normals = new List<Vector3>();
             List<triangle> triangles = new List<triangle>();
             int i = 0;
             while (i < lines.Length)
@@ -41,20 +41,6 @@ namespace Template
                 }
                 i++;
             }
-            while(i < lines.Length)
-            {
-                if(lines[i][0] == 'v' && lines[i][1] == 'n')
-                {
-                    string[] input = lines[i].Split(' ');
-                    normals.Add(new Vector3(float.Parse(input[1]), float.Parse(input[2]), float.Parse(input[3])));
-                }
-                else
-                {
-                    break;
-                }
-                i++;
-
-            }
             while (i < lines.Length)
             {
                 if (lines[i][0] == 'f')
@@ -67,8 +53,7 @@ namespace Template
                         verts[j - 1] = int.Parse(nums[0]) - 1;
                     }
                     string[] index = input[1].Split('/');
-
-                    triangles.Add(new triangle(vertices[verts[0]], vertices[verts[1]], vertices[verts[2]], normals[int.Parse(index[2]) - 1]));
+                    triangles.Add(new triangle(verts[0], verts[1], verts[2], 0, 0));
                 }
                 i++;
             }
@@ -76,10 +61,11 @@ namespace Template
             dimensions = new Vector3(minmax[3] - minmax[0], minmax[4] - minmax[1], minmax[5] - minmax[2]) / 2;
 
             Vector3 centre = new Vector3(minmax[3] + minmax[0], minmax[4] + minmax[1], minmax[5] + minmax[2]) / 2;
-            for(int j = 0; j < shape.Length; ++j)
+            for(int j = 0; j < vertices.Count; ++j)
             {
-                shape[j].transelate(-centre);
+                vertices[i] -= centre;
             }
+            vertex = vertices.ToArray();
         }
     }
 }

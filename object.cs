@@ -10,7 +10,7 @@ namespace Template
 	class @object
 	{
 		public Vector3 position;
-		public Vector3 color;
+		public int color;
 		protected Quaternion rotation;
 		protected float absorption;
 
@@ -25,10 +25,6 @@ namespace Template
 
 			if (t < ray.t && t > 0)
 			{
-				ray.nextColor = color;
-				ray.t = t;
-				ray.normal = getNormal(Vector3.Zero);
-				ray.absorption = absorption;
 			}
 		}
 
@@ -36,5 +32,16 @@ namespace Template
 		{
 			return Vector3.Zero;
 		}
-	}
+
+        public virtual void AddToArray(ref List<float> array)
+        {
+
+        }
+
+        public virtual void AddToArray(ref List<int> array)
+        {
+
+        }
+
+    }
 }

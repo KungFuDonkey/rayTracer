@@ -9,9 +9,9 @@ namespace Template
 {
 	class arealight : lightsource
 	{
-		@object shape;
+		sphere shape;
 
-		public arealight(float _emittance, @object _shape)
+		public arealight(float _emittance, sphere _shape)
 		{
 			emittance = _emittance;
 			shape = _shape;
@@ -38,12 +38,22 @@ namespace Template
 					return;
 				}
 			}
-			ray.color += illumination * Vector3.Dot(ray.normal, lightDirection) * shape.color * ray.energy * ray.absorption / 100;
+			ray.color += illumination * angle * shape.color * ray.energy * ray.absorption / 100;
 		}
 
 		public override void rayIntersection(ray ray)
 		{
 			shape.rayIntersection(ray);
 		}
-	}
+
+        public void AddToArray(ref List<float> array)
+        {
+            array.Add(shape.position.X);
+            array.Add(shape.position.Y);
+            array.Add(shape.position.Z);
+            array.Add(shape.radius);
+            array.Add(shape.color);
+            array.Add(emittance);
+        }
+    }
 }

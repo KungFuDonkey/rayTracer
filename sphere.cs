@@ -9,8 +9,8 @@ namespace Template
 {
     class sphere : @object
     {
-        float radius;
-        public sphere(Vector3 _position, float _radius, Vector3 _color, float _absorption = 100)
+        public float radius;
+        public sphere(Vector3 _position, float _radius, int _color, float _absorption = 1)
         {
             position = _position;
             radius = _radius;
@@ -23,10 +23,6 @@ namespace Template
             float t = calcIntersection(ray.origin, ray.direction, false);
             if (t < ray.t && t > 0)
             {
-                ray.nextColor = color;
-                ray.t = t;
-                ray.normal = getNormal(ray.origin + ray.direction * t);
-                ray.absorption = absorption;
             }
         }
 
@@ -59,6 +55,16 @@ namespace Template
             Vector3 normal = pointOfIntersection - position;
             normal.Normalize();
             return normal;
+        }
+
+        public override void AddToArray(ref List<float> array)
+        {
+            array.Add(position.X);
+            array.Add(position.Y);
+            array.Add(position.Z);
+            array.Add(radius);
+            array.Add(color);
+            array.Add(absorption);
         }
     }
 }

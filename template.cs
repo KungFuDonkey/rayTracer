@@ -62,36 +62,16 @@ namespace Template
 		protected override void OnRenderFrame( FrameEventArgs e )
 		{
             // called once per frame; render
-            GL.ClearColor(0, 0, 0, 0);
-            GL.Enable(EnableCap.Texture2D);
-            GL.Disable(EnableCap.DepthTest);
             app.Tick();
-			if( terminated )
-			{
-				Exit();
-				return;
-			}
-			// convert MyApplication.screen to OpenGL texture
-			GL.BindTexture( TextureTarget.Texture2D, screenID );
-			GL.TexImage2D( TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-						   app.screen.width, app.screen.height, 0,
-						   OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
-						   PixelType.UnsignedByte, app.screen.pixels
-						 );
-			// draw screen filling quad
-			GL.Begin( PrimitiveType.Quads );
-			GL.TexCoord2( 0.0f, 1.0f ); GL.Vertex2( -1.0f, -1.0f );
-			GL.TexCoord2( 1.0f, 1.0f ); GL.Vertex2( 1.0f, -1.0f );
-			GL.TexCoord2( 1.0f, 0.0f ); GL.Vertex2( 1.0f, 1.0f );
-			GL.TexCoord2( 0.0f, 0.0f ); GL.Vertex2( -1.0f, 1.0f );
-			GL.End();
+            if (terminated)
+            {
+                Exit();
+                return;
+            }
+
             // tell OpenTK we're done rendering
-            GL.Enable(EnableCap.DepthTest); 
-            GL.Disable(EnableCap.Texture2D); 
-            GL.Clear(ClearBufferMask.DepthBufferBit);
-            app.RenderGL();
-			SwapBuffers();
-		}
+            SwapBuffers();
+        }
         public static void Main( string[] args )
 		{
 			// entry point
