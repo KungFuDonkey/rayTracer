@@ -30,6 +30,8 @@ namespace Template
         float[] colors;
         int sphereLength;
         int planeLength;
+        int areaLightsourcesLength;
+        int directionalLightsourcesLength;
         int verticeLength;
         int attributeSpheres;
         int attributeAreaLightsources;
@@ -66,13 +68,13 @@ namespace Template
 
             //create objects for the scene
             arealights = new List<arealight>();
-            arealights.Add(new arealight(10, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
+            arealights.Add(new arealight(1, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
 
             directionalLights = new List<directionalLight>();
-            directionalLights.Add(new directionalLight(new Vector3(0.5f, 0.2f, 1), 1, 10));
+            //directionalLights.Add(new directionalLight(new Vector3(0,1,0), 0, 0.2f));
 
             sphere = new List<sphere>();
-            //sphere.Add(new sphere(new Vector3(0, 0, 2), 1f, 2));
+            sphere.Add(new sphere(new Vector3(0, 0, 2), 1f, 2, 0.5f));
             //sphere.Add(new sphere(new Vector3(0, 1, 2), 0.5f, 3));
 
             plane = new List<plane>();
@@ -83,14 +85,14 @@ namespace Template
             shape = new List<shapes>();
             //shape.Add(new mesh(monkey, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
             //shape.Add(new mesh(cube, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
-            shape.Add(new box(new Vector3(0, 0, 2), new Vector3(1, 1, 1), 3, Quaternion.Identity));
+            //shape.Add(new box(new Vector3(0, 0, 2), new Vector3(1, 1, 1), 3, Quaternion.Identity));
 
             //read base shader
             List<string> lines = new List<string>() {
                 File.ReadAllText("../../shaders/ray-tracing-base.glsl")
             };
             //add the objects to float arrays and build GLSL functions for the objects
-            StringBuilder normal = new StringBuilder("void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float col, inout float absorption, inout vec3 normal){\n");
+            StringBuilder normal = new StringBuilder("void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float col, inout float absorption, inout float refraction, inout vec3 normal){\n");
             StringBuilder faster = new StringBuilder("bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){\n");
             normal.AppendLine("    float d;");
             normal.AppendLine("    float discriminant;");
@@ -149,13 +151,14 @@ namespace Template
                 l.AddToArray(ref floats, normal, faster);
             }
             areaLightsources = floats.ToArray();
+            areaLightsourcesLength = areaLightsources.Length / 3;
 
             foreach (directionalLight d in directionalLights)
             {
-                d.AddToArray(ref floats, faster);
+                d.AddToArray(ref floats, normal, faster);
             }
             directionalLightsources = floats.ToArray();
-
+            directionalLightsourcesLength = directionalLightsources.Length / 3;
             normal.AppendLine("}");
             faster.AppendLine("}");
 
@@ -214,8 +217,8 @@ namespace Template
         {
             //bind arrays to compute shader
             GL.Uniform3(attributeSpheres, sphereLength, spheres);
-            GL.Uniform3(attributeAreaLightsources, areaLightsources.Length, areaLightsources);
-            GL.Uniform3(attributeDirectionalLightsources, directionalLightsources.Length, directionalLightsources);
+            GL.Uniform3(attributeAreaLightsources, areaLightsourcesLength, areaLightsources);
+            GL.Uniform3(attributeDirectionalLightsources, directionalLightsourcesLength, directionalLightsources);
             GL.Uniform4(attributePlane, planeLength, planes);
             GL.Uniform3(attributeVertices, verticeLength, vertices);
             GL.Uniform3(attributeColor, 20, colors);
@@ -279,6 +282,10 @@ namespace Template
             {
                 a.move((float)gameTime.Elapsed.TotalSeconds * moveDirection, areaLightsources);
                 a.rotate(rotation, areaLightsources);
+            }
+            foreach(directionalLight d in directionalLights)
+            {
+                d.rotate(rotation, directionalLightsources);
             }
             gameTime.Restart();
         }

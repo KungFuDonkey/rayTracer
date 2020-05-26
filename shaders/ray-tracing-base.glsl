@@ -9,7 +9,7 @@ ivec2 dims;
 //object arrays
 uniform vec3 spheres[];
 uniform vec3 areaLightsources[];
-uniform vec3 directional_lightsources[];
+uniform vec3 directionalLightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
 uniform vec3 colors[];
@@ -48,32 +48,35 @@ void main(){
 			vec3 next_color = vec3(0, 0, 0);
 			vec3 normal = vec3(0, 0, 0);
 			float absorption = 0;
+			float refraction =0;
 			energy = vec3(1, 1, 1);
 			float col = 19;
 			for(int i = 0; i < 5; ++i){
 				calcObjects(ray_origin, ray_direction, t, col, absorption, normal);
 
 				if(t != 100000){
-
 					//update the ray energy, if energy == 0 then stop the loop as there will be no colors left to write 
 					getColor(int(col), next_color);
 					energy *= next_color;
 					if(energy == vec3(0,0,0)) break;
-
 					//create point of intersection 
 					ray_origin = ray_origin + t * ray_direction;
 
 					//arealightsources, gets arealightsource and calculates the luminance
-					calcAreaLightSources(ray_origin, absorption, normal);
+
 
 					//if absorption == 1 then the ray will be absorped otherwise reflect the ray
-					if(absorption != 1){
-						ray_direction = ray_direction - 2 * dot(normal, ray_direction) * normal; //use reflect?
-						ray_origin += ray_direction * 0.0001;
-						t = 100000;
+					if(refraction != 0){
+						ray_direction = refract(ray_direction,normal,refraction);
+					}
+					else if(absorption != 1){
+						calcAreaLightSources(ray_origin, absorption, normal);
+						ray_direction = reflect(ray_direction,normal);
 					}
 					else
 						break;
+					ray_origin += ray_direction * 0.0001;
+					t = 100000;
 				}
 				else
 					break;
@@ -81,9 +84,13 @@ void main(){
 		}
 	}
 	//make sure the colors are within the rgb range
-	color.x = (-1 / (1 + color.x)) + 1;
-	color.y = (-1 / (1 + color.y)) + 1;
-	color.z = (-1 / (1 + color.z)) + 1;
+    const float gamma = 2.2;
+  
+    // exposure tone mapping
+    color = vec3(1.0) - exp(-color * 5);
+    // gamma correction 
+    color = pow(color, vec3(1.0 / gamma));
+  
 	//store the pixel color in the image
 	imageStore(img_output, pixel_coords, vec4(color,1));
 }

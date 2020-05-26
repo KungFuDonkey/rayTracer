@@ -9,7 +9,7 @@ ivec2 dims;
 //object arrays
 uniform vec3 spheres[];
 uniform vec3 areaLightsources[];
-uniform vec3 directional_lightsources[];
+uniform vec3 directionalLightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
 uniform vec3 colors[];
@@ -68,7 +68,8 @@ void main(){
 
 					//if absorption == 1 then the ray will be absorped otherwise reflect the ray
 					if(absorption != 1){
-						ray_direction = ray_direction - 2 * dot(normal, ray_direction) * normal; //use reflect?
+						ray_direction = reflect(ray_direction,normal);
+						
 						ray_origin += ray_direction * 0.0001;
 						t = 100000;
 					}
@@ -81,9 +82,13 @@ void main(){
 		}
 	}
 	//make sure the colors are within the rgb range
-	color.x = (-1 / (1 + color.x)) + 1;
-	color.y = (-1 / (1 + color.y)) + 1;
-	color.z = (-1 / (1 + color.z)) + 1;
+    const float gamma = 2.2;
+  
+    // exposure tone mapping
+    color = vec3(1.0) - exp(-color * 5);
+    // gamma correction 
+    color = pow(color, vec3(1.0 / gamma));
+  
 	//store the pixel color in the image
 	imageStore(img_output, pixel_coords, vec4(color,1));
 }
@@ -157,175 +162,14 @@ bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){
     float d;
     float discriminant;
     float s;
+    d = 2.0 * dot(ray_origin - spheres[0], ray_direction);
+    discriminant = d * d - 4 * (dot(ray_origin - spheres[0], ray_origin - spheres[0]) - 1);
+    if(discriminant >= 0) {
+        s = (-d - sqrt(discriminant)) / 2;
+        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
+        if(s > 0 && s < tmax) return true;
+    }
     vec3 object_position;
-    object_position = normalize(cross(vertices[2] - vertices[0], vertices[1] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[2] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[1] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[2] - vertices[1], vertices[3] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[2] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[3] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[1] - vertices[0], vertices[4] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[1] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[4] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[5] - vertices[1], vertices[4] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[5] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[4] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[7] - vertices[1], vertices[5] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[7] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[5] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[3] - vertices[1], vertices[7] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[3] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[7] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[6] - vertices[2], vertices[3] - vertices[2]));
-    d = -dot(object_position, vertices[2]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[6] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                if(dot(object_position,cross(vertices[3] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                    if(dot(object_position,cross(vertices[2] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[7] - vertices[6], vertices[3] - vertices[6]));
-    d = -dot(object_position, vertices[6]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[7] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                if(dot(object_position,cross(vertices[3] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                    if(dot(object_position,cross(vertices[6] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[4] - vertices[0], vertices[6] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[4] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[6] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[6] - vertices[0], vertices[2] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[6] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[2] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[5] - vertices[4], vertices[6] - vertices[4]));
-    d = -dot(object_position, vertices[4]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[5] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                if(dot(object_position,cross(vertices[6] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                    if(dot(object_position,cross(vertices[4] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[5] - vertices[6], vertices[7] - vertices[6]));
-    d = -dot(object_position, vertices[6]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < tmax){
-            if(dot(object_position,cross(vertices[5] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                if(dot(object_position,cross(vertices[7] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                    if(dot(object_position,cross(vertices[6] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                        return true;
-                    }
-                }
-            }
-        }
-    }
     return false;
 }
 
@@ -333,13 +177,25 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
     float d;
     float discriminant;
     float s;
+    d = 2.0 * dot(ray_origin - spheres[0], ray_direction);
+    discriminant = d * d - 4 * (dot(ray_origin - spheres[0], ray_origin - spheres[0]) - 1);
+    if(discriminant >= 0) {
+        s = (-d - sqrt(discriminant)) / 2;
+        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
+        if(s > 0 && s < t) {
+            t = s;
+            col = 2;
+            normal = normalize(ray_origin + s * ray_direction - spheres[0]);
+            absorption = 0.5;
+        }
+    }
     if(dot(ray_direction, planes[0].xyz) > 0){
         s = -(dot(ray_origin, planes[0].xyz) + planes[0].w) / dot(ray_direction, planes[0].xyz);
         if(s > 0 && s < t){
             t = s;
             col = 0;
             normal = -planes[0].xyz;
-            absorption = 0,7;
+            absorption = 0.7;
         }
     }
     if(dot(ray_direction, planes[1].xyz) > 0){
@@ -348,7 +204,7 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
             t = s;
             col = 0;
             normal = -planes[1].xyz;
-            absorption = 0,7;
+            absorption = 0.7;
         }
     }
     if(dot(ray_direction, planes[2].xyz) > 0){
@@ -357,216 +213,12 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
             t = s;
             col = 0;
             normal = -planes[2].xyz;
-            absorption = 0,7;
+            absorption = 0.7;
         }
     }
     vec3 object_position;
-    object_position = normalize(cross(vertices[2] - vertices[0], vertices[1] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[2] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[1] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[2] - vertices[1], vertices[3] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[2] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[3] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[1] - vertices[0], vertices[4] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[1] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[4] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[5] - vertices[1], vertices[4] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[5] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[4] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[7] - vertices[1], vertices[5] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[7] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[5] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[3] - vertices[1], vertices[7] - vertices[1]));
-    d = -dot(object_position, vertices[1]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[3] - vertices[1], ray_origin + s * ray_direction - vertices[1])) >= 0){
-                if(dot(object_position,cross(vertices[7] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                    if(dot(object_position,cross(vertices[1] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[6] - vertices[2], vertices[3] - vertices[2]));
-    d = -dot(object_position, vertices[2]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[6] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                if(dot(object_position,cross(vertices[3] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                    if(dot(object_position,cross(vertices[2] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[7] - vertices[6], vertices[3] - vertices[6]));
-    d = -dot(object_position, vertices[6]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[7] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                if(dot(object_position,cross(vertices[3] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                    if(dot(object_position,cross(vertices[6] - vertices[3], ray_origin + s * ray_direction - vertices[3])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[4] - vertices[0], vertices[6] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[4] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[6] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[6] - vertices[0], vertices[2] - vertices[0]));
-    d = -dot(object_position, vertices[0]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[6] - vertices[0], ray_origin + s * ray_direction - vertices[0])) >= 0){
-                if(dot(object_position,cross(vertices[2] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                    if(dot(object_position,cross(vertices[0] - vertices[2], ray_origin + s * ray_direction - vertices[2])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[5] - vertices[4], vertices[6] - vertices[4]));
-    d = -dot(object_position, vertices[4]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[5] - vertices[4], ray_origin + s * ray_direction - vertices[4])) >= 0){
-                if(dot(object_position,cross(vertices[6] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                    if(dot(object_position,cross(vertices[4] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
-    object_position = normalize(cross(vertices[5] - vertices[6], vertices[7] - vertices[6]));
-    d = -dot(object_position, vertices[6]);
-    if(dot(ray_direction, object_position) > 0){
-        s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
-        if(s > 0 && s < t){
-            if(dot(object_position,cross(vertices[5] - vertices[6], ray_origin + s * ray_direction - vertices[6])) >= 0){
-                if(dot(object_position,cross(vertices[7] - vertices[5], ray_origin + s * ray_direction - vertices[5])) >= 0){
-                    if(dot(object_position,cross(vertices[6] - vertices[7], ray_origin + s * ray_direction - vertices[7])) >= 0){
-                        t = s;
-                        col = 3;
-                        normal = -object_position;
-                        absorption = 1;
-                    }
-                }
-            }
-        }
-    }
     d = 2.0 * dot(ray_origin - areaLightsources[0], ray_direction);
-    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[0], ray_origin - areaLightsources[0]) - 0,04);
+    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[0], ray_origin - areaLightsources[0]) - 0.04);
     if(discriminant >= 0) {
         s = (-d - sqrt(discriminant)) / 2;
         s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
@@ -590,7 +242,7 @@ void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){
     vec3 point_of_intersection;
     light_direction = areaLightsources[0] - ray_origin;
     tmax = length(light_direction) - 0.0002;
-    lightsource_emittance = 10 / (12.456 * length(light_direction) * length(light_direction));
+    lightsource_emittance = 1 / (12.456 * length(light_direction) * length(light_direction));
     light_direction = normalize(light_direction);
     if(normal == vec3(0,0,0))
         angle = 1;
@@ -604,18 +256,6 @@ void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){
         if(!collision){
             getColor(int(0), lightsource_color);
             color += lightsource_color * lightsource_emittance * energy * angle * absorption * 0.25;
-        }
-    }
-    tmax = 10000;
-    angle = dot(normal, directional_lightsources[0]);
-    point_of_intersection = ray_origin + directional_lightsources[0] * 0.0001;
-    collision = false;
-    if(angle < 0) collision = true;
-    if(!collision){
-        collision = calcObjects(point_of_intersection, directional_lightsources[0], tmax);
-        if(!collision){
-            getColor(int(1), lightsource_color);
-            color += lightsource_color * energy * 10 * angle * absorption;
         }
     }
 }
