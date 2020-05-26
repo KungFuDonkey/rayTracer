@@ -38,7 +38,7 @@ namespace Template
             light.AppendLine("        collision = calcObjects(point_of_intersection, light_direction, tmax);");
             light.AppendLine("        if(!collision){");
             light.AppendLine("            getColor(int(" + shape.color + "), lightsource_color);");
-            light.AppendLine("            color += lightsource_color * lightsource_emittance * energy * angle * absorption;");
+            light.AppendLine("            color += lightsource_color * lightsource_emittance * energy * angle * absorption * 0.25;");
             light.AppendLine("        }");
             light.AppendLine("    }");
             normal.AppendLine("    d = 2.0 * dot(ray_origin - areaLightsources[" + index + "], ray_direction);");

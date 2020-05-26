@@ -130,7 +130,7 @@ namespace Template
             lines.Add(faster.ToString());
 
 
-            faster = new StringBuilder("void calcAreaLightSources(vec3 ray_origin, vec3 energy, float absorption, vec3 normal, inout vec3 color){\n");
+            faster = new StringBuilder("void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){\n");
             faster.AppendLine("    float lightsource_emittance;");
             faster.AppendLine("    vec3 light_direction;");
             faster.AppendLine("    float tmax;");

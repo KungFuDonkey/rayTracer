@@ -20,58 +20,65 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
 bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax);
 
 //function for area lightsources
-void calcAreaLightSources(vec3 ray_origin, vec3 energy, float absorption, vec3 normal, inout vec3 color);
+void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal);
 //functions for getting the objects out of the arrays
 void getColor(int index, out vec3 color);
 void getVertice(int index, out vec3 vertice);
 
+vec3 ray_origin;
+vec3 color = vec3(0.0, 0.0, 0.0);
+vec3 energy;
 //main
 void main(){
 
 	//initialize the color for this pixel and get invocationID for the ray
-	vec3 color = vec3(0.0, 0.0, 0.0);
+
 	ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
 
 	//initialization for the ray
 	dims = imageSize(img_output);
-	vec3 ray_origin = vec3((float(pixel_coords.x * 2 - dims.x) / dims.x), (float(pixel_coords.y * 2 - dims.y) / dims.x), 0);
-	vec3 ray_direction = ray_origin - vec3(0, 0, -1);
-	ray_direction = normalize(ray_direction);
-	float t = 100000;
-	vec3 next_color = vec3(0, 0, 0);
-	vec3 normal = vec3(0, 0, 0);
-	float absorption = 0;
-	vec3 energy = vec3(1, 1, 1);
-	float col = 19;
-	for(int i = 0; i < 5; ++i){
-		calcObjects(ray_origin, ray_direction, t, col, absorption, normal);
 
-		if(t != 100000){
+	for(int y = 0; y < 2; ++y){
+		for(int x = 0; x < 2; ++x){
+			ray_origin = vec3((float(pixel_coords.x * 2 + 0.5 * x - dims.x) / dims.x), (float(pixel_coords.y * 2 + 0.5 * y - dims.y) / dims.x), 1);
+			vec3 ray_direction = ray_origin;
+			ray_direction = normalize(ray_direction);
+			float t = 100000;
+			vec3 next_color = vec3(0, 0, 0);
+			vec3 normal = vec3(0, 0, 0);
+			float absorption = 0;
+			energy = vec3(1, 1, 1);
+			float col = 19;
+			for(int i = 0; i < 5; ++i){
+				calcObjects(ray_origin, ray_direction, t, col, absorption, normal);
 
-			//update the ray energy, if energy == 0 then stop the loop as there will be no colors left to write 
-			getColor(int(col), next_color);
-			energy *= next_color;
-			if(energy == vec3(0,0,0)) break;
+				if(t != 100000){
 
-			//create point of intersection 
-			ray_origin = ray_origin + t * ray_direction;
+					//update the ray energy, if energy == 0 then stop the loop as there will be no colors left to write 
+					getColor(int(col), next_color);
+					energy *= next_color;
+					if(energy == vec3(0,0,0)) break;
 
-			//arealightsources, gets arealightsource and calculates the luminance
-			calcAreaLightSources(ray_origin, energy, absorption, normal, color);
+					//create point of intersection 
+					ray_origin = ray_origin + t * ray_direction;
 
-			//if absorption == 1 then the ray will be absorped otherwise reflect the ray
-			if(absorption != 1){
-				ray_direction = ray_direction - 2 * dot(normal, ray_direction) * normal; //use reflect?
-				ray_origin += ray_direction * 0.0001;
-				t = 100000;
+					//arealightsources, gets arealightsource and calculates the luminance
+					calcAreaLightSources(ray_origin, absorption, normal);
+
+					//if absorption == 1 then the ray will be absorped otherwise reflect the ray
+					if(absorption != 1){
+						ray_direction = ray_direction - 2 * dot(normal, ray_direction) * normal; //use reflect?
+						ray_origin += ray_direction * 0.0001;
+						t = 100000;
+					}
+					else
+						break;
+				}
+				else
+					break;
 			}
-			else
-				break;
 		}
-		else
-			break;
 	}
-	
 	//make sure the colors are within the rgb range
 	color.x = (-1 / (1 + color.x)) + 1;
 	color.y = (-1 / (1 + color.y)) + 1;
