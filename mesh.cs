@@ -9,13 +9,14 @@ namespace Template
     class mesh : shapes
     {
 
-        public mesh(obj obj, Vector3 _position, int _color, Quaternion _rotation, float multiplier, float _absorption = 1)
+        public mesh(obj obj, Vector3 _position, int _color, Quaternion _rotation, float multiplier, float _absorption = 1, float _refraction = 0)
         {
             position = _position;
             color = _color;
             rotation = _rotation;
             rotation.Normalize();
             absorption = _absorption;
+            refraction = _refraction;
 
             shape = new triangle[obj.shape.Length];
             vertices = new Vector3[obj.vertex.Length];

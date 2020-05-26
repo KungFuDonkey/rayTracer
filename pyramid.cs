@@ -9,7 +9,7 @@ namespace Template
 {
 	class pyramid: shapes
 	{
-		public pyramid(Vector3 _position, Vector3 _dimensions, int _color, Quaternion _rotation, float _absorption = 1)
+		public pyramid(Vector3 _position, Vector3 _dimensions, int _color, Quaternion _rotation, float _absorption = 1, float _refraction = 0)
 		{
 			position = _position;
 			dimensions = _dimensions * 0.5f;
@@ -17,6 +17,7 @@ namespace Template
 			rotation = _rotation;
 			rotation.Normalize();
 			absorption = _absorption;
+			refraction = _refraction;
 
 			Vector3 right = rotation * Vector3.UnitX;
 			Vector3 up = rotation * Vector3.UnitY;
