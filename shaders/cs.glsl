@@ -10,10 +10,10 @@ ivec2 dims;
 uniform float spheres[];
 uniform float areaLightsources[];
 uniform int count[];
-uniform float colors[];
+uniform vec3 colors[];
 uniform float planes[];
-uniform float vertices[];
-uniform int triangles[];
+uniform vec3 vertices[];
+uniform float triangles[];
 
 
 //functions for getting the objects out of the arrays
@@ -24,7 +24,9 @@ void getColor(int index, out vec3 color);
 void getPlane(int index, out vec3 normal, out float d, out int color, out float absorption);
 void getPlane(int index, out vec3 normal, out float d);
 void getVertice(int index, out vec3 vertice);
-void getTriangle(int index, out int corner1, out int corner2, out int corner3, out int color, out float absorption);
+void getTriangle(int index, out float corner1, out float corner2, out float corner3, out int color, out float absorption);
+void getTriangle(int index, out float corner1, out float corner2, out float corner3);
+
 
 
 //main
@@ -53,9 +55,9 @@ void main(){
 	vec3 corner1;
 	vec3 corner2;
 	vec3 corner3;
-	int c1;
-	int c2;
-	int c3;
+	float c1;
+	float c2;
+	float c3;
 	int col;
 	bool collision;
 	for(int i = 0; i < 5; ++i){
@@ -68,9 +70,7 @@ void main(){
 			discriminant = b * b - 4 * (dot(ray_origin - object_position, ray_origin - object_position) - d * d);
 			if(discriminant >= 0) {
 				s = (-b - sqrt(discriminant)) / 2;
-				if(s < 0) {
-					s = (-b + sqrt(discriminant)) / 2;
-				}
+				s = s < 0 ? (-b + sqrt(discriminant)) / 2 : s;
 				if(s > 0 && s < t) {
 					t = s;
 					getColor(col,next_color);
@@ -83,12 +83,11 @@ void main(){
 		//Plane intersections, gets the next plane in the array and checks if it collides with the ray, if it does change t, the next_color, the normal and the absorption of the ray
 		for(int k = 0; k < 10 && k < count[1]; ++k) {
 			getPlane(k, object_position, d, col, object_absorption);
-			if(dot(ray_direction, object_position) > 0.0001) {
+			if(dot(ray_direction, object_position) > 0) {
 				s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
 				if(s > 0 && s < t) {
 					t = s;
 					getColor(col,next_color);
-					next_color *= 0.01;
 					normal = -object_position;
 					absorption = object_absorption;
 				}
@@ -96,13 +95,30 @@ void main(){
 
 		}
 
-		//Triangle intersections, gets the next triangle in the array and checks if it collides with the ray, if it does change t, the next_color, the normal and the absorption of the ray
-//		for(int k = 0; k < 20 && k < count[2]; ++k){
-//			getTriangle(k, c1, c2, c3, col, object_absorption);
-//			getVertice(c1,corner1);
-//			
-//		}
-
+//		Triangle intersections, gets the next triangle in the array and checks if it collides with the ray, if it does change t, the next_color, the normal and the absorption of the ray
+		for(int k = 0; k < 20 && k < count[2]; ++k){
+			getTriangle(k, c1, c2, c3, col, object_absorption);
+			getVertice(int(c1),corner1);
+			getVertice(int(c2),corner2);
+			getVertice(int(c3),corner3);
+			object_position = normalize(cross(corner2 - corner1, corner3 - corner1));
+			d = -dot(object_position, corner1);
+			if(dot(ray_direction, object_position) > 0) {
+				s = -(dot(ray_origin, object_position) + d) / dot(ray_direction, object_position);
+				if(s > 0 && s < t) {
+					if(dot(object_position,cross(corner2 - corner1, ray_origin + s * ray_direction - corner1)) >= 0){
+						if(dot(object_position,cross(corner3 - corner2, ray_origin + s * ray_direction - corner2)) >= 0){
+							if(dot(object_position,cross(corner1 - corner3, ray_origin + s * ray_direction - corner3)) >= 0){
+								t = s;
+								getColor(col,next_color);
+								normal = -object_position;
+								absorption = object_absorption;						
+							}						
+						}						
+					}
+				}
+			}
+		}
 		//check if the ray has collided with something
 		if(t != 100000){
 
@@ -119,7 +135,7 @@ void main(){
 			float lightsource_emittance;
 
 			//arealightsources, gets arealightsource and calculates the luminance
-			for(int j = 0; j < 10 && j < count[3]; ++j){
+			for(int j = 0; j < 10 && j < count[4]; ++j){
 				s = 0;
 				getAreaLightsources(j, lightsource_position, lightsource_radius, col, lightsource_emittance);
 
@@ -165,7 +181,29 @@ void main(){
 					}
 
 				}
-
+				//triangle intersection
+				for(int k = 0; k < 20 && k < count[2]; ++k){
+					if(collision)
+						break;
+					getTriangle(k, c1, c2, c3);
+					getVertice(int(c1),corner1);
+					getVertice(int(c2),corner2);
+					getVertice(int(c3),corner3);
+					object_position = normalize(cross(corner2 - corner1, corner3 - corner1));
+					d = -dot(object_position, corner1);
+					if(dot(light_direction, object_position) > 0) {
+						s = -(dot(ray_origin, object_position) + d) / dot(light_direction, object_position);
+						if(s > 0 && s < tmax) {
+							if(dot(object_position,cross(corner2 - corner1, ray_origin + s * light_direction - corner1)) >= 0){
+								if(dot(object_position,cross(corner3 - corner2, ray_origin + s * light_direction - corner2)) >= 0){
+									if(dot(object_position,cross(corner1 - corner3, ray_origin + s * light_direction - corner3)) >= 0){
+										collision = true;				
+									}						
+								}						
+							}
+						}
+					}
+				}
 				//if there is no collision change the color
 				if(!collision){
 					getColor(col,next_color);
@@ -178,13 +216,13 @@ void main(){
 				ray_direction = ray_direction - 2 * dot(normal, ray_direction) * normal; //use reflect?
 				ray_origin += ray_direction * 0.0001;
 				t = 100000;
-				continue;
 			}
+			else
+				break;
 		}
-		//stop the loop if there were no collisions with objects
-		break;
+		else
+			break;
 	}
-
 	//make sure the colors are within the rgb range
 	color.x = (-1 / (1 + color.x)) + 1;
 	color.y = (-1 / (1 + color.y)) + 1;
@@ -471,271 +509,374 @@ void getAreaLightsources(int index, out vec3 position, out float radius, out int
 //void for getting the colors out of the array, as GLSL doesn't have dynamic looping it has to be done like this
 void getColor(int index, out vec3 color){
 	if(index == 0){
-		color = vec3(colors[0], colors[1], colors[2]);
+		color = colors[0];
 	}
 	else if(index == 1){
-		color = vec3(colors[3], colors[4], colors[5]);
+		color = colors[1];
 	}
 	else if(index == 2){
-		color = vec3(colors[6], colors[7], colors[8]);
+		color = colors[2];
 	}
 	else if(index == 3){
-		color = vec3(colors[9], colors[10], colors[11]);
+		color = colors[3];
 	}
 	else if(index == 4){
-		color = vec3(colors[12], colors[13], colors[14]);
+		color = colors[4];
 	}
 	else if(index == 5){
-		color = vec3(colors[15], colors[16], colors[17]);
+		color = colors[5];
 	}
 	else if(index == 6){
-		color = vec3(colors[18], colors[19], colors[20]);
+		color = colors[6];
 	}
 	else if(index == 7){
-		color = vec3(colors[21], colors[22], colors[23]);
+		color = colors[7];
 	}
 	else if(index == 8){
-		color = vec3(colors[24], colors[25], colors[26]);
+		color = colors[8];
 	}
 	else if(index == 9){
-		color = vec3(colors[27], colors[28], colors[29]);
+		color = colors[9];
 	}
 	else if(index == 10){
-		color = vec3(colors[30], colors[31], colors[32]);
+		color = colors[10];
 	}
 	else if(index == 11){
-		color = vec3(colors[33], colors[34], colors[35]);
+		color = colors[11];
 	}
 	else if(index == 12){
-		color = vec3(colors[36], colors[37], colors[38]);
+		color = colors[12];
 	}
 	else if(index == 13){
-		color = vec3(colors[39], colors[40], colors[41]);
+		color = colors[13];
 	}
 	else if(index == 14){
-		color = vec3(colors[42], colors[43], colors[44]);
+		color = colors[14];
 	}
 	else if(index == 15){
-		color = vec3(colors[45], colors[46], colors[47]);
+		color = colors[15];
 	}
 	else if(index == 16){
-		color = vec3(colors[48], colors[49], colors[50]);
+		color = colors[16];
 	}
 	else if(index == 17){
-		color = vec3(colors[51], colors[52], colors[53]);
+		color = colors[17];
 	}
 	else if(index == 18){
-		color = vec3(colors[54], colors[55], colors[56]);
+		color = colors[18];
 	}
 	else if(index == 19){
-		color = vec3(colors[57], colors[58], colors[59]);
+		color = colors[19];
 	}
 }
 
 
 //void for getting the triangles out of the array, as GLSL doesn't have dynamic looping it has to be done like this
-void getTriangle(int index, out int corner1, out int corner2, out int corner3, out int color, out float absorption){
+void getTriangle(int index, out float corner1, out float corner2, out float corner3, out int color, out float absorption){
 	if(index == 0){
-		corner1 = int(triangles[0]);
-		corner2 = int(triangles[1]);
-		corner3 = int(triangles[2]);
+		corner1 = (triangles[0]);
+		corner2 = (triangles[1]);
+		corner3 = (triangles[2]);
 		color = int(triangles[3]);
 		absorption = (triangles[4]);
 	}
 	else if(index == 1){
-		corner1 = int(triangles[5]);
-		corner2 = int(triangles[6]);
-		corner3 = int(triangles[7]);
+		corner1 = (triangles[5]);
+		corner2 = (triangles[6]);
+		corner3 = (triangles[7]);
 		color = int(triangles[8]);
 		absorption = (triangles[9]);
 	}
 	else if(index == 2){
-		corner1 = int(triangles[10]);
-		corner2 = int(triangles[11]);
-		corner3 = int(triangles[12]);
+		corner1 = (triangles[10]);
+		corner2 = (triangles[11]);
+		corner3 = (triangles[12]);
 		color = int(triangles[13]);
 		absorption = (triangles[14]);
 	}
 	else if(index == 3){
-		corner1 = int(triangles[15]);
-		corner2 = int(triangles[16]);
-		corner3 = int(triangles[17]);
+		corner1 = (triangles[15]);
+		corner2 = (triangles[16]);
+		corner3 = (triangles[17]);
 		color = int(triangles[18]);
 		absorption = (triangles[19]);
 	}
 	else if(index == 4){
-		corner1 = int(triangles[20]);
-		corner2 = int(triangles[21]);
-		corner3 = int(triangles[22]);
+		corner1 = (triangles[20]);
+		corner2 = (triangles[21]);
+		corner3 = (triangles[22]);
 		color = int(triangles[23]);
 		absorption = (triangles[24]);
 	}
 	else if(index == 5){
-		corner1 = int(triangles[25]);
-		corner2 = int(triangles[26]);
-		corner3 = int(triangles[27]);
+		corner1 = (triangles[25]);
+		corner2 = (triangles[26]);
+		corner3 = (triangles[27]);
 		color = int(triangles[28]);
 		absorption = (triangles[29]);
 	}
 	else if(index == 6){
-		corner1 = int(triangles[30]);
-		corner2 = int(triangles[31]);
-		corner3 = int(triangles[32]);
+		corner1 = (triangles[30]);
+		corner2 = (triangles[31]);
+		corner3 = (triangles[32]);
 		color = int(triangles[33]);
 		absorption = (triangles[34]);
 	}
 	else if(index == 7){
-		corner1 = int(triangles[35]);
-		corner2 = int(triangles[36]);
-		corner3 = int(triangles[37]);
+		corner1 = (triangles[35]);
+		corner2 = (triangles[36]);
+		corner3 = (triangles[37]);
 		color = int(triangles[38]);
 		absorption = (triangles[39]);
 	}
 	else if(index == 8){
-		corner1 = int(triangles[40]);
-		corner2 = int(triangles[41]);
-		corner3 = int(triangles[42]);
+		corner1 = (triangles[40]);
+		corner2 = (triangles[41]);
+		corner3 = (triangles[42]);
 		color = int(triangles[43]);
 		absorption = (triangles[44]);
 	}
 	else if(index == 9){
-		corner1 = int(triangles[45]);
-		corner2 = int(triangles[46]);
-		corner3 = int(triangles[47]);
+		corner1 = (triangles[45]);
+		corner2 = (triangles[46]);
+		corner3 = (triangles[47]);
 		color = int(triangles[48]);
 		absorption = (triangles[49]);
 	}
 	else if(index == 10){
-		corner1 = int(triangles[50]);
-		corner2 = int(triangles[51]);
-		corner3 = int(triangles[52]);
+		corner1 = (triangles[50]);
+		corner2 = (triangles[51]);
+		corner3 = (triangles[52]);
 		color = int(triangles[53]);
 		absorption = (triangles[54]);
 	}
 	else if(index == 11){
-		corner1 = int(triangles[55]);
-		corner2 = int(triangles[56]);
-		corner3 = int(triangles[57]);
+		corner1 = (triangles[55]);
+		corner2 = (triangles[56]);
+		corner3 = (triangles[57]);
 		color = int(triangles[58]);
 		absorption = (triangles[59]);
 	}
 	else if(index == 12){
-		corner1 = int(triangles[60]);
-		corner2 = int(triangles[61]);
-		corner3 = int(triangles[62]);
+		corner1 = (triangles[60]);
+		corner2 = (triangles[61]);
+		corner3 = (triangles[62]);
 		color = int(triangles[63]);
 		absorption = (triangles[64]);
 	}
 	else if(index == 13){
-		corner1 = int(triangles[65]);
-		corner2 = int(triangles[66]);
-		corner3 = int(triangles[67]);
+		corner1 = (triangles[65]);
+		corner2 = (triangles[66]);
+		corner3 = (triangles[67]);
 		color = int(triangles[68]);
 		absorption = (triangles[69]);
 	}
 	else if(index == 14){
-		corner1 = int(triangles[70]);
-		corner2 = int(triangles[71]);
-		corner3 = int(triangles[72]);
+		corner1 = (triangles[70]);
+		corner2 = (triangles[71]);
+		corner3 = (triangles[72]);
 		color = int(triangles[73]);
 		absorption = (triangles[74]);
 	}
 	else if(index == 15){
-		corner1 = int(triangles[75]);
-		corner2 = int(triangles[76]);
-		corner3 = int(triangles[77]);
+		corner1 = (triangles[75]);
+		corner2 = (triangles[76]);
+		corner3 = (triangles[77]);
 		color = int(triangles[78]);
 		absorption = (triangles[79]);
 	}
 	else if(index == 16){
-		corner1 = int(triangles[80]);
-		corner2 = int(triangles[81]);
-		corner3 = int(triangles[82]);
+		corner1 = (triangles[80]);
+		corner2 = (triangles[81]);
+		corner3 = (triangles[82]);
 		color = int(triangles[83]);
 		absorption = (triangles[84]);
 	}
 	else if(index == 17){
-		corner1 = int(triangles[85]);
-		corner2 = int(triangles[86]);
-		corner3 = int(triangles[87]);
+		corner1 = (triangles[85]);
+		corner2 = (triangles[86]);
+		corner3 = (triangles[87]);
 		color = int(triangles[88]);
 		absorption = (triangles[89]);
 	}
 	else if(index == 18){
-		corner1 = int(triangles[90]);
-		corner2 = int(triangles[91]);
-		corner3 = int(triangles[92]);
+		corner1 = (triangles[90]);
+		corner2 = (triangles[91]);
+		corner3 = (triangles[92]);
 		color = int(triangles[93]);
 		absorption = (triangles[94]);
 	}
 	else if(index == 19){
-		corner1 = int(triangles[95]);
-		corner2 = int(triangles[96]);
-		corner3 = int(triangles[97]);
+		corner1 = (triangles[95]);
+		corner2 = (triangles[96]);
+		corner3 = (triangles[97]);
 		color = int(triangles[98]);
 		absorption = (triangles[99]);
 	}
 }
-void getVertice(int index, out vec3 vertice){
+void getTriangle(int index, out float corner1, out float corner2, out float corner3){
 	if(index == 0){
-		vertice = vec3(vertices[0], vertices[1], vertices[2]);
+		corner1 = (triangles[0]);
+		corner2 = (triangles[1]);
+		corner3 = (triangles[2]);
 	}
 	else if(index == 1){
-		vertice = vec3(vertices[3], vertices[4], vertices[5]);
+		corner1 = (triangles[5]);
+		corner2 = (triangles[6]);
+		corner3 = (triangles[7]);
 	}
 	else if(index == 2){
-		vertice = vec3(vertices[6], vertices[7], vertices[8]);
+		corner1 = (triangles[10]);
+		corner2 = (triangles[11]);
+		corner3 = (triangles[12]);
 	}
 	else if(index == 3){
-		vertice = vec3(vertices[9], vertices[10], vertices[11]);
+		corner1 = (triangles[15]);
+		corner2 = (triangles[16]);
+		corner3 = (triangles[17]);
 	}
 	else if(index == 4){
-		vertice = vec3(vertices[12], vertices[13], vertices[14]);
+		corner1 = (triangles[20]);
+		corner2 = (triangles[21]);
+		corner3 = (triangles[22]);
 	}
 	else if(index == 5){
-		vertice = vec3(vertices[15], vertices[16], vertices[17]);
+		corner1 = (triangles[25]);
+		corner2 = (triangles[26]);
+		corner3 = (triangles[27]);
 	}
 	else if(index == 6){
-		vertice = vec3(vertices[18], vertices[19], vertices[20]);
+		corner1 = (triangles[30]);
+		corner2 = (triangles[31]);
+		corner3 = (triangles[32]);
 	}
 	else if(index == 7){
-		vertice = vec3(vertices[21], vertices[22], vertices[23]);
+		corner1 = (triangles[35]);
+		corner2 = (triangles[36]);
+		corner3 = (triangles[37]);
 	}
 	else if(index == 8){
-		vertice = vec3(vertices[24], vertices[25], vertices[26]);
+		corner1 = (triangles[40]);
+		corner2 = (triangles[41]);
+		corner3 = (triangles[42]);
 	}
 	else if(index == 9){
-		vertice = vec3(vertices[27], vertices[28], vertices[29]);
+		corner1 = (triangles[45]);
+		corner2 = (triangles[46]);
+		corner3 = (triangles[47]);
 	}
 	else if(index == 10){
-		vertice = vec3(vertices[30], vertices[31], vertices[32]);
+		corner1 = (triangles[50]);
+		corner2 = (triangles[51]);
+		corner3 = (triangles[52]);
 	}
 	else if(index == 11){
-		vertice = vec3(vertices[33], vertices[34], vertices[35]);
+		corner1 = (triangles[55]);
+		corner2 = (triangles[56]);
+		corner3 = (triangles[57]);
 	}
 	else if(index == 12){
-		vertice = vec3(vertices[36], vertices[37], vertices[38]);
+		corner1 = (triangles[60]);
+		corner2 = (triangles[61]);
+		corner3 = (triangles[62]);
 	}
 	else if(index == 13){
-		vertice = vec3(vertices[39], vertices[40], vertices[41]);
+		corner1 = (triangles[65]);
+		corner2 = (triangles[66]);
+		corner3 = (triangles[67]);
 	}
 	else if(index == 14){
-		vertice = vec3(vertices[42], vertices[43], vertices[44]);
+		corner1 = (triangles[70]);
+		corner2 = (triangles[71]);
+		corner3 = (triangles[72]);
 	}
 	else if(index == 15){
-		vertice = vec3(vertices[45], vertices[46], vertices[47]);
+		corner1 = (triangles[75]);
+		corner2 = (triangles[76]);
+		corner3 = (triangles[77]);
 	}
 	else if(index == 16){
-		vertice = vec3(vertices[48], vertices[49], vertices[50]);
+		corner1 = (triangles[80]);
+		corner2 = (triangles[81]);
+		corner3 = (triangles[82]);
 	}
 	else if(index == 17){
-		vertice = vec3(vertices[51], vertices[52], vertices[53]);
+		corner1 = (triangles[85]);
+		corner2 = (triangles[86]);
+		corner3 = (triangles[87]);
 	}
 	else if(index == 18){
-		vertice = vec3(vertices[54], vertices[55], vertices[56]);
+		corner1 = (triangles[90]);
+		corner2 = (triangles[91]);
+		corner3 = (triangles[92]);
 	}
 	else if(index == 19){
-		vertice = vec3(vertices[57], vertices[58], vertices[59]);
+		corner1 = (triangles[95]);
+		corner2 = (triangles[96]);
+		corner3 = (triangles[97]);
+	}
+}
+
+void getVertice(int index, out vec3 vertice){
+	if(index == 0){
+		vertice = vertices[0];
+	}
+	else if(index == 1){
+		vertice = vertices[1];
+	}
+	else if(index == 2){
+		vertice = vertices[2];
+	}
+	else if(index == 3){
+		vertice = vertices[3];
+	}
+	else if(index == 4){
+		vertice = vertices[4];
+	}
+	else if(index == 5){
+		vertice = vertices[5];
+	}
+	else if(index == 6){
+		vertice = vertices[6];
+	}
+	else if(index == 7){
+		vertice = vertices[7];
+	}
+	else if(index == 8){
+		vertice = vertices[8];
+	}
+	else if(index == 9){
+		vertice = vertices[9];
+	}
+	else if(index == 10){
+		vertice = vertices[10];
+	}
+	else if(index == 11){
+		vertice = vertices[11];
+	}
+	else if(index == 12){
+		vertice = vertices[12];
+	}
+	else if(index == 13){
+		vertice = vertices[13];
+	}
+	else if(index == 14){
+		vertice = vertices[14];
+	}
+	else if(index == 15){
+		vertice = vertices[15];
+	}
+	else if(index == 16){
+		vertice = vertices[16];
+	}
+	else if(index == 17){
+		vertice = vertices[17];
+	}
+	else if(index == 18){
+		vertice = vertices[18];
+	}
+	else if(index == 19){
+		vertice = vertices[19];
 	}
 }
 

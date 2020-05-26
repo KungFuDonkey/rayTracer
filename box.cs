@@ -9,7 +9,7 @@ namespace Template
 {
 	class box : shapes
 	{
-		public box(Vector3 _position, Vector3 _dimensions, int _color, Quaternion _rotation, float _absorption = 100)
+		public box(Vector3 _position, Vector3 _dimensions, int _color, Quaternion _rotation, float _absorption = 1)
 		{
 			position = _position;
 			dimensions = _dimensions / 2;
@@ -21,7 +21,7 @@ namespace Template
 			Vector3 right = rotation * Vector3.UnitX;
 			Vector3 up = rotation * Vector3.UnitY;
 			Vector3 forward = rotation * Vector3.UnitZ;
-
+            vertices = new Vector3[8];
 			vertices[0] = position - forward * dimensions.Z + up * dimensions.Y - right * dimensions.X;
 			vertices[1] = position - forward * dimensions.Z + up * dimensions.Y + right * dimensions.X;
 			vertices[2] = position - forward * dimensions.Z - up * dimensions.Y - right * dimensions.X;

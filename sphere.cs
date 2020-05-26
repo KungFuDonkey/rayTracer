@@ -18,53 +18,46 @@ namespace Template
             absorption = _absorption;
         }
 
-        public override void rayIntersection(ray ray)
+        public override void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder faster)
         {
-            float t = calcIntersection(ray.origin, ray.direction, false);
-            if (t < ray.t && t > 0)
-            {
-            }
-        }
-
-        public override float calcIntersection(Vector3 origin, Vector3 direction, bool lightray)
-        {
-            Vector3 conversion = origin - position;
-            float b = 2.0f * Vector3.Dot(conversion, direction);
-            float c = Vector3.Dot(conversion, conversion) - radius * radius;
-            float discriminant = b * b - 4 * c;
-
-            if(discriminant < 0)
-            {
-                return -1;
-            }
-            else
-            {
-                float t = (float)((-b - Math.Sqrt(discriminant)) / 2);
-
-                if(t < 0)
-                {
-                    t = (float)((-b + Math.Sqrt(discriminant)) / 2);
-                }
-
-                return t;
-            }
-        }
-
-        public override Vector3 getNormal(Vector3 pointOfIntersection)
-        {
-            Vector3 normal = pointOfIntersection - position;
-            normal.Normalize();
-            return normal;
-        }
-
-        public override void AddToArray(ref List<float> array)
-        {
+            index = array.Count / 3;
             array.Add(position.X);
             array.Add(position.Y);
             array.Add(position.Z);
-            array.Add(radius);
-            array.Add(color);
-            array.Add(absorption);
+
+            normal.AppendLine("    d = 2.0 * dot(ray_origin - spheres[" + index + "], ray_direction);");
+            normal.AppendLine("    discriminant = d * d - 4 * (dot(ray_origin - spheres[" + index + "], ray_origin - spheres[" + index + "]) - " + (radius * radius) + ");");
+            normal.AppendLine("    if(discriminant >= 0) {");
+            normal.AppendLine("        s = (-d - sqrt(discriminant)) / 2;");
+            normal.AppendLine("        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;");
+            normal.AppendLine("        if(s > 0 && s < t) {");
+            normal.AppendLine("            t = s;");
+            normal.AppendLine("            col = " + color + ";");
+            normal.AppendLine("            normal = normalize(ray_origin + s * ray_direction - spheres[" + index + "]);");
+            normal.AppendLine("            absorption = " + absorption + ";");
+            normal.AppendLine("        }");
+            normal.AppendLine("    }");
+            faster.AppendLine("    d = 2.0 * dot(ray_origin - spheres[" + index + "], ray_direction);");
+            faster.AppendLine("    discriminant = d * d - 4 * (dot(ray_origin - spheres[" + index + "], ray_origin - spheres[" + index + "]) - " + (radius * radius) + ");");
+            faster.AppendLine("    if(discriminant >= 0) {");
+            faster.AppendLine("        s = (-d - sqrt(discriminant)) / 2;");
+            faster.AppendLine("        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;");
+            faster.AppendLine("        if(s > 0 && s < tmax) return true;");
+            faster.AppendLine("    }");
+        }
+        public override void move(Vector3 direction, float[] array)
+        {
+            position -= direction;
+            array[index * 3] = position.X;
+            array[index * 3 + 1] = position.Y;
+            array[index * 3 + 2] = position.Z;
+        }
+        public override void rotate(Quaternion rotate, float[] array)
+        {
+            position = rotate * position;
+            array[index * 3] = position.X;
+            array[index * 3 + 1] = position.Y;
+            array[index * 3 + 2] = position.Z;
         }
     }
 }

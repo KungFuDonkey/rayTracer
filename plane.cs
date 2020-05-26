@@ -10,42 +10,47 @@ namespace Template
 	class plane : @object
 	{
 		float d;
-		Vector3 normal;
+		Vector3 plane_normal;
 
-		public plane(float _d, int _color, Quaternion _rotation, float _absorption = 100)
+		public plane(float _d, int _color, Quaternion _rotation, float _absorption = 1)
 		{
 			d = -_d;
 			color = _color;
-			normal = _rotation * Vector3.UnitZ;
-            normal.Normalize();
+			plane_normal = _rotation * Vector3.UnitZ;
+            plane_normal.Normalize();
 			absorption = _absorption;
 		}
 
-		public override float calcIntersection(Vector3 origin, Vector3 direction, bool lightray)
-		{
-			float dotProduct = Vector3.Dot(direction, normal);
-			if (dotProduct > 1e-6)
-			{
-				float t = -(Vector3.Dot(origin, normal) + d) / dotProduct;
-				return t;
-			}
-
-			return -1;
-		}
-
-		public override Vector3 getNormal(Vector3 pointOfIntersection)
-		{
-			return -normal;
-		}
-
-        public override void AddToArray(ref List<float> array)
+        public void AddToArray(ref List<float> array, StringBuilder normal)
         {
-            array.Add(normal.X);
-            array.Add(normal.Y);
-            array.Add(normal.Z);
+            index = array.Count / 4;
+            array.Add(plane_normal.X);
+            array.Add(plane_normal.Y);
+            array.Add(plane_normal.Z);
             array.Add(d);
-            array.Add(color);
-            array.Add(absorption);
+            normal.AppendLine("    if(dot(ray_direction, planes[" + index + "].xyz) > 0){");
+            normal.AppendLine("        s = -(dot(ray_origin, planes[" + index + "].xyz) + planes[" + index + "].w) / dot(ray_direction, planes[" + index + "].xyz);");
+            normal.AppendLine("        if(s > 0 && s < t){");
+            normal.AppendLine("            t = s;");
+            normal.AppendLine("            col = " + color + ";");
+            normal.AppendLine("            normal = -planes[" + index + "].xyz;");
+            normal.AppendLine("            absorption = " + absorption + ";");
+            normal.AppendLine("        }");
+            normal.AppendLine("    }");
+        }
+
+        public override void move(Vector3 direction, float[] array)
+        {
+            d += Vector3.Dot(plane_normal, direction);
+            array[index * 4 + 3] = d;
+        }
+        public override void rotate(Quaternion rotate, float[] array)
+        {
+            plane_normal = rotate * plane_normal;
+            plane_normal.Normalize();
+            array[index * 4] = plane_normal.X;
+            array[index * 4 + 1] = plane_normal.Y;
+            array[index * 4 + 2] = plane_normal.Z;
         }
     }
 }

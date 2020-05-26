@@ -9,7 +9,7 @@ namespace Template
 {
 	class pyramid: shapes
 	{
-		public pyramid(Vector3 _position, Vector3 _dimensions, int _color, Quaternion _rotation, float _absorption = 100)
+		public pyramid(Vector3 _position, Vector3 _dimensions, int _color, Quaternion _rotation, float _absorption = 1)
 		{
 			position = _position;
 			dimensions = _dimensions * 0.5f;

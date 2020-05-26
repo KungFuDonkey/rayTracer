@@ -7,41 +7,27 @@ using OpenTK;
 
 namespace Template
 {
-	class @object
+	unsafe class @object
 	{
 		public Vector3 position;
 		public int color;
 		protected Quaternion rotation;
 		protected float absorption;
+        protected int index;
 
-		public virtual float calcIntersection(Vector3 origin, Vector3 direction, bool lightray)
-		{
-			return -1;
-		}
-
-		public virtual void rayIntersection(ray ray)
-		{
-			float t = calcIntersection(ray.origin, ray.direction, false);
-
-			if (t < ray.t && t > 0)
-			{
-			}
-		}
-
-		public virtual Vector3 getNormal(Vector3 pointOfIntersection)
-		{
-			return Vector3.Zero;
-		}
-
-        public virtual void AddToArray(ref List<float> array)
+        public virtual void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder faster)
         {
 
         }
 
-        public virtual void AddToArray(ref List<int> array)
+        public virtual void move(Vector3 direction, float[] array)
         {
 
         }
 
+        public virtual void rotate(Quaternion rotate, float[] array)
+        {
+
+        }
     }
 }

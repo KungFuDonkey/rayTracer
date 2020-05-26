@@ -11,7 +11,6 @@ namespace Template
     {
         public triangle[] shape;
         public Vector3[] vertex;
-        public Vector3 dimensions;
         public obj(string name)
         {
             string[] lines = File.ReadAllLines(name);
@@ -53,17 +52,16 @@ namespace Template
                         verts[j - 1] = int.Parse(nums[0]) - 1;
                     }
                     string[] index = input[1].Split('/');
-                    triangles.Add(new triangle(verts[0], verts[1], verts[2], 0, 0));
+                    triangles.Add(new triangle(verts[0], verts[2], verts[1], 0, 0));
                 }
                 i++;
             }
             shape = triangles.ToArray();
-            dimensions = new Vector3(minmax[3] - minmax[0], minmax[4] - minmax[1], minmax[5] - minmax[2]) / 2;
 
             Vector3 centre = new Vector3(minmax[3] + minmax[0], minmax[4] + minmax[1], minmax[5] + minmax[2]) / 2;
             for(int j = 0; j < vertices.Count; ++j)
             {
-                vertices[i] -= centre;
+                vertices[j] -= centre;
             }
             vertex = vertices.ToArray();
         }

@@ -13,19 +13,9 @@ namespace Template
 		protected Vector3 dimensions;
 		public triangle[] shape;
         public Vector3[] vertices;
-        public override void rayIntersection(ray ray)
-		{
-			for (int i = 0; i < shape.Length; ++i)
-			{
-				float t = shape[i].calcIntersection(ray.origin, ray.direction, false);
-
-				if(t < ray.t && t > 0)
-				{
-				}
-			}
-		}
-        public override void AddToArray(ref List<float> array)
+        public void AddToArray(ref List<float> array)
         {
+            index = array.Count;
             for (int i = 0; i < shape.Length; ++i)
             {
                 shape[i].changeIndex(array.Count);
@@ -35,6 +25,26 @@ namespace Template
                 array.Add(vertices[i].X);
                 array.Add(vertices[i].Y);
                 array.Add(vertices[i].Z);
+            }
+        }
+        public override void move(Vector3 direction, float[] array)
+        {
+            for(int i = 0; i < vertices.Length; ++i)
+            {
+                vertices[i] -= direction;
+                array[index + i * 3] = vertices[i].X;
+                array[index + i * 3 + 1] = vertices[i].Y;
+                array[index + i * 3 + 2] = vertices[i].Z;
+            }
+        }
+        public override void rotate(Quaternion rotate, float[] array)
+        {
+            for (int i = 0; i < vertices.Length; ++i)
+            {
+                vertices[i] = rotate * vertices[i];
+                array[index + i * 3] = vertices[i].X;
+                array[index + i * 3 + 1] = vertices[i].Y;
+                array[index + i * 3 + 2] = vertices[i].Z;
             }
         }
     }

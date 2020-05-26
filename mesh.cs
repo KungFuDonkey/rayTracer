@@ -9,7 +9,7 @@ namespace Template
     class mesh : shapes
     {
 
-        public mesh(obj obj, Vector3 _position, int _color, Quaternion _rotation, float multiplier, float _absorption = 100)
+        public mesh(obj obj, Vector3 _position, int _color, Quaternion _rotation, float multiplier, float _absorption = 1)
         {
             position = _position;
             color = _color;

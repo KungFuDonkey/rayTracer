@@ -12,15 +12,5 @@ namespace Template
 	{
 		public float emittance;
 		public float epsilon = 0.0001f;
-
-		public virtual void calcIntersection(ray ray, List<@object> objects)
-		{
-
-		}
-
-		public virtual void rayIntersection(ray ray)
-		{
-			
-		}
 	}
 }
