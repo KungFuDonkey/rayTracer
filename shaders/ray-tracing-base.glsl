@@ -9,6 +9,7 @@ ivec2 dims;
 //object arrays
 uniform vec3 spheres[];
 uniform vec3 areaLightsources[];
+uniform vec3 directional_lightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
 uniform vec3 colors[];
