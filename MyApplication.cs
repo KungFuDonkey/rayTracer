@@ -20,11 +20,12 @@ namespace Template
         List<plane> plane;
         List<shapes> shape;
         List<arealight> arealights;
-
+        List<directionalLight> directionalLights;
 
         float[] spheres;
         float[] planes;
         float[] areaLightsources;
+        float[] directionalLightsources;
         float[] vertices;
         float[] colors;
         int sphereLength;
@@ -32,10 +33,10 @@ namespace Template
         int verticeLength;
         int attributeSpheres;
         int attributeAreaLightsources;
+        int attributeDirectionalLightsources;
         int attributeColor;
         int attributePlane;
         int attributeVertices;
-
 
         Vector3 moveDirection;
         Quaternion rotation;
@@ -43,8 +44,8 @@ namespace Template
         // initialize
         public void Init()
         {
-            obj monkey = new obj("../../shapes/monkey.obj");
-            obj cube = new obj("../../shapes/block.obj");
+            //obj monkey = new obj("../../shapes/monkey.obj");
+            //obj cube = new obj("../../shapes/block.obj");
             //dimensions of the image
             tex_w = screen.width;
             tex_h = screen.height;
@@ -66,6 +67,9 @@ namespace Template
             //create objects for the scene
             arealights = new List<arealight>();
             arealights.Add(new arealight(10, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
+
+            directionalLights = new List<directionalLight>();
+            directionalLights.Add(new directionalLight(new Vector3(0.5f, 0.2f, 1), 1, 10));
 
             sphere = new List<sphere>();
             //sphere.Add(new sphere(new Vector3(0, 0, 2), 1f, 2));
@@ -146,6 +150,12 @@ namespace Template
             }
             areaLightsources = floats.ToArray();
 
+            foreach (directionalLight d in directionalLights)
+            {
+                d.AddToArray(ref floats, faster);
+            }
+            directionalLightsources = floats.ToArray();
+
             normal.AppendLine("}");
             faster.AppendLine("}");
 
@@ -190,6 +200,7 @@ namespace Template
             //get arrays of the shader
             attributeSpheres = GL.GetUniformLocation(ray_program, "spheres");
             attributeAreaLightsources = GL.GetUniformLocation(ray_program, "areaLightsources");
+            attributeDirectionalLightsources = GL.GetUniformLocation(ray_program, "directionalLightsources");
             attributeColor = GL.GetUniformLocation(ray_program, "colors");
             attributePlane = GL.GetUniformLocation(ray_program, "planes");
             attributeVertices = GL.GetUniformLocation(ray_program, "vertices");
@@ -204,6 +215,7 @@ namespace Template
             //bind arrays to compute shader
             GL.Uniform3(attributeSpheres, sphereLength, spheres);
             GL.Uniform3(attributeAreaLightsources, areaLightsources.Length, areaLightsources);
+            GL.Uniform3(attributeDirectionalLightsources, directionalLightsources.Length, directionalLightsources);
             GL.Uniform4(attributePlane, planeLength, planes);
             GL.Uniform3(attributeVertices, verticeLength, vertices);
             GL.Uniform3(attributeColor, 20, colors);

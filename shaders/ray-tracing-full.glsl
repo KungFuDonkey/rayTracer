@@ -9,6 +9,7 @@ ivec2 dims;
 //object arrays
 uniform vec3 spheres[];
 uniform vec3 areaLightsources[];
+uniform vec3 directional_lightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
 uniform vec3 colors[];
@@ -338,7 +339,7 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
             t = s;
             col = 0;
             normal = -planes[0].xyz;
-            absorption = 0.7;
+            absorption = 0,7;
         }
     }
     if(dot(ray_direction, planes[1].xyz) > 0){
@@ -347,7 +348,7 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
             t = s;
             col = 0;
             normal = -planes[1].xyz;
-            absorption = 0.7;
+            absorption = 0,7;
         }
     }
     if(dot(ray_direction, planes[2].xyz) > 0){
@@ -356,7 +357,7 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
             t = s;
             col = 0;
             normal = -planes[2].xyz;
-            absorption = 0.7;
+            absorption = 0,7;
         }
     }
     vec3 object_position;
@@ -565,7 +566,7 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float
         }
     }
     d = 2.0 * dot(ray_origin - areaLightsources[0], ray_direction);
-    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[0], ray_origin - areaLightsources[0]) - 0.04);
+    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[0], ray_origin - areaLightsources[0]) - 0,04);
     if(discriminant >= 0) {
         s = (-d - sqrt(discriminant)) / 2;
         s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
@@ -603,6 +604,18 @@ void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){
         if(!collision){
             getColor(int(0), lightsource_color);
             color += lightsource_color * lightsource_emittance * energy * angle * absorption * 0.25;
+        }
+    }
+    tmax = 10000;
+    angle = dot(normal, directional_lightsources[0]);
+    point_of_intersection = ray_origin + directional_lightsources[0] * 0.0001;
+    collision = false;
+    if(angle < 0) collision = true;
+    if(!collision){
+        collision = calcObjects(point_of_intersection, directional_lightsources[0], tmax);
+        if(!collision){
+            getColor(int(1), lightsource_color);
+            color += lightsource_color * energy * 10 * angle * absorption;
         }
     }
 }
