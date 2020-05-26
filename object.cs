@@ -14,7 +14,7 @@ namespace Template
 		protected Quaternion rotation;
 		protected float absorption;
         protected int index;
-
+        protected float refraction;
         public virtual void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder faster)
         {
 

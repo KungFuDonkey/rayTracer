@@ -12,13 +12,14 @@ namespace Template
 		float d;
 		Vector3 plane_normal;
 
-		public plane(float _d, int _color, Quaternion _rotation, float _absorption = 1)
+		public plane(float _d, int _color, Quaternion _rotation, float _absorption = 1, float _refraction = 0)
 		{
 			d = -_d;
 			color = _color;
 			plane_normal = _rotation * Vector3.UnitZ;
             plane_normal.Normalize();
 			absorption = _absorption;
+            refraction = _refraction;
 		}
 
         public void AddToArray(ref List<float> array, StringBuilder normal)

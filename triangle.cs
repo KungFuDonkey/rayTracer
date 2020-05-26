@@ -11,7 +11,7 @@ namespace Template
 	{
 		public int[] vertices;
 
-		public triangle(int corner1, int corner2, int corner3, int _color, float _absorption = 1)
+		public triangle(int corner1, int corner2, int corner3, int _color, float _absorption = 1, float _refraction)
 		{
 			vertices = new int[3];
 			vertices[0] = corner1;
@@ -19,6 +19,7 @@ namespace Template
 			vertices[2] = corner3;
             color = _color;
             absorption = _absorption;
+            refraction = _refraction;
         }
 
         public void AddToArray(StringBuilder normal, StringBuilder faster)

@@ -10,12 +10,13 @@ namespace Template
     class sphere : @object
     {
         public float radius;
-        public sphere(Vector3 _position, float _radius, int _color, float _absorption = 1)
+        public sphere(Vector3 _position, float _radius, int _color, float _absorption = 1, float _refraction)
         {
             position = _position;
             radius = _radius;
             color = _color;
             absorption = _absorption;
+            refraction = _refraction;
         }
 
         public override void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder faster)
