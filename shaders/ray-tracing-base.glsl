@@ -4,6 +4,7 @@ layout(local_size_x = 1, local_size_y = 1) in;
 
 //Image with dimensions
 layout(rgba32f, binding = 0) uniform image2D img_output;
+layout(binding = 1)uniform sampler2D skydome;
 ivec2 dims;
 
 //Object arrays
@@ -12,6 +13,7 @@ uniform vec3 areaLightsources[];
 uniform vec3 directionalLightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
+uniform vec3 skydomeDirection;
 
 //Function for calculating collisions for normal rays
 void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 col, inout float absorption, inout float refraction, inout vec3 normal);
@@ -37,7 +39,7 @@ void main(){
 
 	//Initialization for the ray
 	dims = imageSize(img_output);
-
+	
 	for(int y = 0; y < 2; ++y){
 		for(int x = 0; x < 2; ++x){
 			ray_origin = vec3((float(pixel_coords.x * 2 + 0.5 * x - dims.x) / dims.x), (float(pixel_coords.y * 2 + 0.5 * y - dims.y) / dims.x), 1);

@@ -21,7 +21,7 @@ namespace Template
 
             for (int i = 0; i < shape.Length; ++i)
             {
-                shape[i].changeIndex(array.Count);
+                shape[i].changeIndex(array.Count / 3);
             }
 
             for (int i = 0; i < vertices.Length; ++i)
