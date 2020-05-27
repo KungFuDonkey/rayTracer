@@ -8,7 +8,7 @@ namespace Template
 {
     class mesh : shapes
     {
-
+        //Use obj transform to triangles
         public mesh(obj obj, Vector3 _position, int _color, Quaternion _rotation, float multiplier, float _absorption = 1, float _refraction = 0)
         {
             position = _position;
@@ -20,6 +20,7 @@ namespace Template
 
             shape = new triangle[obj.shape.Length];
             vertices = new Vector3[obj.vertex.Length];
+
             for(int i = 0; i < vertices.Length; ++i)
             {
                 vertices[i] = obj.vertex[i];
@@ -27,6 +28,7 @@ namespace Template
                 vertices[i] = rotation * vertices[i];
                 vertices[i] += position;
             }
+
             for (int i = 0; i < shape.Length; i++)
             {
                 shape[i] = new triangle(obj.shape[i].vertices[0], obj.shape[i].vertices[1], obj.shape[i].vertices[2], _color, _absorption);

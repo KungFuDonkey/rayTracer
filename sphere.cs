@@ -19,9 +19,11 @@ namespace Template
             refraction = _refraction;
         }
 
-        public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal, StringBuilder faster)
+        //Build GLSL functions
+        public void AddToArray(List<float> array, float[] colors, StringBuilder normal, StringBuilder faster)
         {
             index = array.Count / 3;
+
             array.Add(position.X);
             array.Add(position.Y);
             array.Add(position.Z);
@@ -39,6 +41,7 @@ namespace Template
             normal.AppendLine("            absorption = " + absorption + ";");
             normal.AppendLine("        }");
             normal.AppendLine("    }");
+
             if (refraction == 0)
             {
                 faster.AppendLine("    d = 2.0 * dot(ray_origin - spheres[" + index + "], ray_direction);");
@@ -50,6 +53,8 @@ namespace Template
                 faster.AppendLine("    }");
             }
         }
+
+        //Move sphere based on user input
         public override void move(Vector3 direction, float[] array)
         {
             position -= direction;
@@ -57,6 +62,8 @@ namespace Template
             array[index * 3 + 1] = position.Y;
             array[index * 3 + 2] = position.Z;
         }
+
+        //Rotate sphere based on user input
         public override void rotate(Quaternion rotate, float[] array)
         {
             position = rotate * position;

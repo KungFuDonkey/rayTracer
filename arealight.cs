@@ -16,13 +16,16 @@ namespace Template
 			emittance = _emittance;
 			shape = _shape;
 		}
-
-        public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal, StringBuilder light)
+        
+        //Build GLSL functions
+        public void AddToArray(List<float> array, float[] colors, StringBuilder normal, StringBuilder light)
         {
             index = array.Count / 3;
+
             array.Add(shape.position.X);
             array.Add(shape.position.Y);
             array.Add(shape.position.Z);
+
             light.AppendLine("    light_direction = areaLightsources[" + index + "] - ray_origin;");
             light.AppendLine("    tmax = length(light_direction) - 0.0002;");
             light.AppendLine("    lightsource_emittance = " + emittance + " / (12.456 * length(light_direction) * length(light_direction));");
@@ -40,6 +43,7 @@ namespace Template
             light.AppendLine("            color += vec3(" + colors[shape.color * 3] + ", " + colors[shape.color * 3 + 1] + ", " + colors[shape.color * 3 + 2] + ") * lightsource_emittance * energy * angle * absorption * 0.25;");
             light.AppendLine("        }");
             light.AppendLine("    }");
+
             normal.AppendLine("    d = 2.0 * dot(ray_origin - areaLightsources[" + index + "], ray_direction);");
             normal.AppendLine("    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[" + index + "], ray_origin - areaLightsources[" + index + "]) - " + (shape.radius * shape.radius) + ");");
             normal.AppendLine("    if(discriminant >= 0) {");
@@ -54,17 +58,21 @@ namespace Template
             normal.AppendLine("    }");
         }
 
+        //Move light based on user input
         public void move(Vector3 direction, float[] array)
         {
             shape.position -= direction;
+
             array[index * 3] = shape.position.X;
             array[index * 3 + 1] = shape.position.Y;
             array[index * 3 + 2] = shape.position.Z;
-
         }
+
+        //Rotate light based on user input
         public void rotate(Quaternion rotate, float[] array)
         {
             shape.position = rotate * shape.position;
+
             array[index * 3] = shape.position.X;
             array[index * 3 + 1] = shape.position.Y;
             array[index * 3 + 2] = shape.position.Z;

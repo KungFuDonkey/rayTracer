@@ -22,13 +22,16 @@ namespace Template
             refraction = _refraction;
 		}
 
-        public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal)
+        //Create GLSL functions
+        public void AddToArray(List<float> array, float[] colors, StringBuilder normal)
         {
             index = array.Count / 4;
+
             array.Add(plane_normal.X);
             array.Add(plane_normal.Y);
             array.Add(plane_normal.Z);
             array.Add(d);
+
             normal.AppendLine("    if(dot(ray_direction, planes[" + index + "].xyz) > 0){");
             normal.AppendLine("        s = -(dot(ray_origin, planes[" + index + "].xyz) + planes[" + index + "].w) / dot(ray_direction, planes[" + index + "].xyz);");
             normal.AppendLine("        if(s > 0 && s < t){");
@@ -41,15 +44,19 @@ namespace Template
             normal.AppendLine("    }");
         }
 
+        //Move plane based on user input
         public override void move(Vector3 direction, float[] array)
         {
             d += Vector3.Dot(plane_normal, direction);
             array[index * 4 + 3] = d;
         }
+
+        //Rotate plane based on user input
         public override void rotate(Quaternion rotate, float[] array)
         {
             plane_normal = rotate * plane_normal;
             plane_normal.Normalize();
+
             array[index * 4] = plane_normal.X;
             array[index * 4 + 1] = plane_normal.Y;
             array[index * 4 + 2] = plane_normal.Z;

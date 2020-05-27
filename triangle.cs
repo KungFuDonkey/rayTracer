@@ -22,6 +22,7 @@ namespace Template
             refraction = _refraction;
         }
 
+        //Build GLSL functions
         public void AddToArray(float[] colors, StringBuilder normal, StringBuilder faster)
         {
             normal.AppendLine("    object_position = normalize(cross(vertices[" + vertices[1] + "] - vertices[" + vertices[0] + "], vertices[" + vertices[2] + "] - vertices[" + vertices[0] + "]));");
@@ -42,6 +43,7 @@ namespace Template
             normal.AppendLine("            }");
             normal.AppendLine("        }");
             normal.AppendLine("    }");
+
             if(refraction == 0)
             {
                 faster.AppendLine("    object_position = normalize(cross(vertices[" + vertices[1] + "] - vertices[" + vertices[0] + "], vertices[" + vertices[2] + "] - vertices[" + vertices[0] + "]));");
@@ -60,9 +62,9 @@ namespace Template
                 faster.AppendLine("    }");
 
             }
-
         }
 
+        //Get start index of shape in vertices list
         public void changeIndex(int index)
         {
             for(int i = 0; i < 3; ++i)

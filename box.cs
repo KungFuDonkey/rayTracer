@@ -22,6 +22,8 @@ namespace Template
 			Vector3 right = rotation * Vector3.UnitX;
 			Vector3 up = rotation * Vector3.UnitY;
 			Vector3 forward = rotation * Vector3.UnitZ;
+
+			//Create vertices
             vertices = new Vector3[8];
 			vertices[0] = position - forward * dimensions.Z + up * dimensions.Y - right * dimensions.X;
 			vertices[1] = position - forward * dimensions.Z + up * dimensions.Y + right * dimensions.X;
@@ -32,6 +34,7 @@ namespace Template
 			vertices[6] = position + forward * dimensions.Z - up * dimensions.Y - right * dimensions.X;
 			vertices[7] = position + forward * dimensions.Z - up * dimensions.Y + right * dimensions.X;
 
+			//Create triangles based on vertices
             shape = new triangle[12];
             shape[0] = new triangle(0, 2, 1, _color, _absorption);
 			shape[1] = new triangle(1, 2, 3, _color, _absorption);
@@ -46,6 +49,5 @@ namespace Template
 			shape[10] = new triangle(4, 5, 6, _color, _absorption);
 			shape[11] = new triangle(6, 5, 7, _color, _absorption);
 		}
-
     }
 }
