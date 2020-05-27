@@ -6,6 +6,8 @@ using OpenTK.Input;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 namespace Template
 {
 	class MyApplication
@@ -15,6 +17,8 @@ namespace Template
         int tex_w;
         int tex_h;
         uint tex_output;
+        int sky_tex;
+        int scene = 0;
 
         List<sphere> sphere;
         List<plane> plane;
@@ -39,7 +43,10 @@ namespace Template
         int attributeColor;
         int attributePlane;
         int attributeVertices;
+        int attributeSkydome;
 
+        skydome skye = new skydome();
+        obj tree = new obj("../../shapes/tree.obj");
         Vector3 moveDirection;
         Quaternion rotation;
         Stopwatch gameTime;
@@ -47,10 +54,26 @@ namespace Template
         public void Init()
         {
             //obj monkey = new obj("../../shapes/monkey.obj");
-            //obj cube = new obj("../../shapes/block.obj");
+
             //dimensions of the image
             tex_w = screen.width;
             tex_h = screen.height;
+
+            Bitmap bitmap = new Bitmap("../../textures/sky.jpg");
+            GL.GenTextures(1, out sky_tex);
+            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.BindTexture(TextureTarget.Texture2D, sky_tex);
+
+            BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+            bitmap.UnlockBits(data);
+            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, new int[] { (int)All.ClampToEdge });
+            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, new int[] { (int)All.ClampToEdge });
+            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)All.Linear });
+            GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)All.Linear });
+
+            GL.BindImageTexture(1, sky_tex, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba32f);
 
             //OpenGL settings for the quad texture
             GL.GenTextures(1, out tex_output);
@@ -60,7 +83,7 @@ namespace Template
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, new int[] { (int)All.ClampToEdge });
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)All.Linear });
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)All.Linear });
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, tex_w, tex_h, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, tex_w, tex_h, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
 
             //set the acces to write only for the compute shader
             GL.BindImageTexture(0, tex_output, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba32f);
@@ -68,48 +91,119 @@ namespace Template
 
             colors = new float[60]
             {
-                1, 1, 1, //white
-                1, 0, 0, //red
-                0, 1, 0, //green
-                0, 0, 1, //blue
-                1, 1, 0, //yellow
-                0, 1, 1, //turqoise
-                1, 0, 1, //purple
-                0.5f, 0.5f, 0.5f, //gray 
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0,
+                1, 1, 1, //white                            0
+                1, 0, 0, //red                              1
+                0, 1, 0, //green                            2
+                0, 0, 1, //blue                             3
+                1, 1, 0, //yellow                           4
+                0, 1, 1, //turqoise                         5
+                1, 0, 1, //fuchsia                          6
+                0.5f, 0.5f, 0.5f, //gray                    7
+                0.25f, 0.875f, 0.8125f, //turquoise         8
+                0.2f, 0.8f, 0.2f, //lime                    9
+                0.75f, 0, 1, //purple                       10
+                0.02f, 0.125f, 0.41f, //42069               11
+                0.64f, 0.64f, 0.82f, //blue bell            12
+                0, 0.75f, 1, //deep sky blue                13
+                0.70f, 0.75f, 0.71f, //ash grey             14
+                0.3f, 0.10f, 0.50f, //blue violet           15
+                0.87f, 0.22f, 0.26f, //dark pink            16
+                0.98f, 0.59f, 0.7f, //middle pink           17
+                0.97f, 0.86f, 0.89f, //light pink           18
                 0, 0, 0 //black
             };
-            //create objects for the scene
-            arealights = new List<arealight>();
-            //arealights.Add(new arealight(1, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
 
-            directionalLights = new List<directionalLight>();
-            directionalLights.Add(new directionalLight(new Vector3(0,1,0), 0, 0.2f));
+            createScene();
 
-            sphere = new List<sphere>();
-            //sphere.Add(new sphere(new Vector3(0, 0, 1), 0.5f, 0, 1f, 1.517f)) ;
-            sphere.Add(new sphere(new Vector3(0, 0, 2), 0.5f, 3));
+            moveDirection = new Vector3(0);
+            gameTime = new Stopwatch();
+            gameTime.Start();
+        }
+        public void createScene()
+        {
+            if (scene == 0)
+            {
+                arealights = new List<arealight>();
 
-            plane = new List<plane>();
-            //plane.Add(new plane(2f, 0, new Quaternion(0, rad(90), 0), 0.7f));
-            //plane.Add(new plane(2f, 0, new Quaternion(0, rad(-90), 0), 0.7f));
-            //plane.Add(new plane(3f, 0, Quaternion.Identity, 0.7f));
+                directionalLights = new List<directionalLight>();
+                directionalLights.Add(new directionalLight(new Vector3(1, 1, -0.1f), 0, 0.05f));
 
-            shape = new List<shapes>();
-            //shape.Add(new mesh(monkey, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
-            //shape.Add(new mesh(cube, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
-            //shape.Add(new box(new Vector3(0, 0, 2), new Vector3(1, 1, 1), 3, Quaternion.Identity));
+                sphere = new List<sphere>();
 
+                sphere.Add(new sphere(new Vector3(0.2f, -0.5f, 5), 0.5f, 9));
+
+                plane = new List<plane>();
+                plane.Add(new plane(1f, 12, new Quaternion(rad(90), 0, 0), 0.8f));
+
+                shape = new List<shapes>();
+                shape.Add(new box(new Vector3(-0.5f, -0.75f, 3), new Vector3(0.5f, 0.5f, 0.5f), 6, Quaternion.Identity));
+                shape.Add(new pyramid(new Vector3(1f, -0.75f, 3), new Vector3(0.5f, 0.5f, 0.5f), 11, Quaternion.Identity));
+            }
+            else if (scene == 1) //done
+            {
+                arealights = new List<arealight>();
+                arealights.Add(new arealight(10, new sphere(new Vector3(0, 2, 0), 0.25f, 0)));
+                directionalLights = new List<directionalLight>();
+
+                sphere = new List<sphere>();
+                sphere.Add(new sphere(new Vector3(-1f, -0.3f, 2f), 0.3f, 16, 0, 0.64f));
+                sphere.Add(new sphere(new Vector3(0, -0.3f, 2f), 0.3f, 17, 1f, 0.70f));
+                sphere.Add(new sphere(new Vector3(1f, -0.3f, 2f), 0.3f, 18, 1f, 1.517f));
+
+                plane = new List<plane>();
+                plane.Add(new plane(3f, 8, new Quaternion(0, rad(45), 0)));
+                plane.Add(new plane(3f, 8, new Quaternion(0, rad(-45), 0)));
+                plane.Add(new plane(0.6f, 8, new Quaternion(rad(90), 0, 0)));
+                shape = new List<shapes>();
+
+            }
+            else if (scene == 2)
+            {
+                arealights = new List<arealight>();
+
+                directionalLights = new List<directionalLight>();
+                directionalLights.Add(new directionalLight(new Vector3(1, 1, -0.1f), 0, 0.05f));
+
+                sphere = new List<sphere>();
+
+                plane = new List<plane>();
+                plane.Add(new plane(1f, 13, new Quaternion(rad(90), 0, 0), 0f, 0.34f));
+
+                shape = new List<shapes>();
+                shape.Add(new box(new Vector3(-0.75f, -1.25f, 3), new Vector3(0.5f, 0.5f, 1f), 14, new Quaternion(rad(-45), rad(45), 0)));
+                shape.Add(new box(new Vector3(0.75f, -1.25f, 3.5f), new Vector3(0.5f, 0.5f, 1f), 15, new Quaternion(rad(-45), rad(-45), 0)));
+            }
+            else if (scene == 3)
+            {
+                arealights = new List<arealight>();
+                arealights.Add(new arealight(1, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
+                directionalLights = new List<directionalLight>();
+
+                sphere = new List<sphere>();
+                sphere.Add(new sphere(new Vector3(0, 0, 2f), 0.5f, 6, 0.5f));
+
+                plane = new List<plane>();
+                plane.Add(new plane(3f, 9, new Quaternion(0, rad(90), 0), 0.7f));
+                plane.Add(new plane(3f, 3, new Quaternion(0, rad(-90), 0), 0.7f));
+                plane.Add(new plane(3f, 0, Quaternion.Identity, 0.7f));
+                plane.Add(new plane(3f, 8, new Quaternion(0, rad(180), 0), 0.7f));
+                plane.Add(new plane(3f, 6, new Quaternion(rad(90), 0, 0), 0.7f));
+                plane.Add(new plane(3f, 1, new Quaternion(rad(-90), 0, 0), 0.7f));
+                shape = new List<shapes>();
+            }
+            else if (scene == 4)
+            {
+                arealights = new List<arealight>();
+                arealights.Add(new arealight(10, new sphere(new Vector3(0, 2, 0), 0.25f, 0)));
+                directionalLights = new List<directionalLight>();
+
+                sphere = new List<sphere>();
+
+                plane = new List<plane>();
+
+                shape = new List<shapes>();
+                shape.Add(new mesh(tree, new Vector3(0, 0, 2), 9, Quaternion.Identity, 0.2f));
+            }
             //read base shader
             List<string> lines = new List<string>() {
                 File.ReadAllText("../../shaders/ray-tracing-base.glsl")
@@ -124,7 +218,7 @@ namespace Template
             faster.AppendLine("    float discriminant;");
             faster.AppendLine("    float s;");
             List<float> floats = new List<float>();
-            foreach(sphere s in sphere)
+            foreach (sphere s in sphere)
             {
                 s.AddToArray(ref floats, colors, normal, faster);
             }
@@ -132,7 +226,7 @@ namespace Template
             sphereLength = spheres.Length / 3;
 
             floats = new List<float>();
-            foreach(plane p in plane)
+            foreach (plane p in plane)
             {
                 p.AddToArray(ref floats, colors, normal);
             }
@@ -143,10 +237,10 @@ namespace Template
             faster.AppendLine("    vec3 object_position;");
             floats = new List<float>();
             List<float> tr = new List<float>();
-            foreach(shapes s in shape)
+            foreach (shapes s in shape)
             {
                 s.AddToArray(ref floats);
-                foreach(triangle t in s.shape)
+                foreach (triangle t in s.shape)
                 {
                     t.AddToArray(colors, normal, faster);
                 }
@@ -170,7 +264,7 @@ namespace Template
             floats = new List<float>();
             foreach (arealight l in arealights)
             {
-                l.AddToArray(ref floats,colors, normal, faster);
+                l.AddToArray(ref floats, colors, normal, faster);
             }
             areaLightsources = floats.ToArray();
             areaLightsourcesLength = areaLightsources.Length / 3;
@@ -181,7 +275,7 @@ namespace Template
             }
             directionalLightsources = floats.ToArray();
             directionalLightsourcesLength = directionalLightsources.Length / 3;
-            skydome skye = new skydome();
+
             skye.AddToArray(normal);
             normal.AppendLine("}");
             faster.AppendLine("}");
@@ -208,12 +302,11 @@ namespace Template
             attributeColor = GL.GetUniformLocation(ray_program, "colors");
             attributePlane = GL.GetUniformLocation(ray_program, "planes");
             attributeVertices = GL.GetUniformLocation(ray_program, "vertices");
-
-            moveDirection = new Vector3(0);
-            gameTime = new Stopwatch();
-            gameTime.Start();
+            attributeSkydome = GL.GetUniformLocation(ray_program, "skydomeDirection");
         }
         // tick: renders one frame
+        KeyboardState keys;
+        KeyboardState prevkeys;
         public void Tick()
         {
             //bind arrays to compute shader
@@ -223,7 +316,7 @@ namespace Template
             GL.Uniform4(attributePlane, planeLength, planes);
             GL.Uniform3(attributeVertices, verticeLength, vertices);
             GL.Uniform3(attributeColor, 20, colors);
-
+            GL.Uniform3(attributeSkydome, skye.lookDir);
             //run compute shader
             GL.UseProgram(ray_program);
             GL.DispatchCompute(tex_w, tex_h, 1);
@@ -245,7 +338,8 @@ namespace Template
 
 
             //movement for the player
-            KeyboardState keys = Keyboard.GetState();
+            prevkeys = keys;
+            keys = Keyboard.GetState();
             moveDirection = Vector3.Zero;
             if (keys[Key.Up])
                 moveDirection.Z = 1;
@@ -288,7 +382,32 @@ namespace Template
             {
                 d.rotate(rotation, directionalLightsources);
             }
+            skye.rotate(rotation);
             gameTime.Restart();
+            if (keys[Key.E] && !prevkeys[Key.E])
+            {
+                scene++;
+                if(scene < 5)
+                {
+                    createScene();
+                }
+                else
+                {
+                    scene--;
+                }
+            }
+            if (keys[Key.Q] && !prevkeys[Key.Q])
+            {
+                scene--;
+                if(scene >= 0)
+                {
+                    createScene();
+                }
+                else
+                {
+                    scene++;
+                }
+            }
         }
         public float rad(float degree)
         {

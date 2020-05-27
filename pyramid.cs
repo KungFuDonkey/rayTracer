@@ -22,7 +22,7 @@ namespace Template
 			Vector3 right = rotation * Vector3.UnitX;
 			Vector3 up = rotation * Vector3.UnitY;
 			Vector3 forward = rotation * Vector3.UnitZ;
-
+            vertices = new Vector3[5];
 			vertices[0] = position + up * dimensions.Y;
 			vertices[1] = position - up * dimensions.Y - right * dimensions.X - forward * dimensions.Z;
 			vertices[2] = position - up * dimensions.Y + right * dimensions.X - forward * dimensions.Z;

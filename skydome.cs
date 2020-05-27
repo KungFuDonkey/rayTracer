@@ -10,9 +10,10 @@ namespace Template
     class skydome
     {
         float radius = 100;
+        public Vector3 lookDir;
         public skydome()
         {
-
+            lookDir = new Vector3(1, 1, 0);
 
         }
         public void AddToArray(StringBuilder normal)
@@ -26,9 +27,13 @@ namespace Template
             normal.AppendLine("            normal = vec3(0,0,0);");
             normal.AppendLine("            refraction = 0;");
             normal.AppendLine("            absorption = 1;");
-            normal.AppendLine("            col = ray_direction;");
+            normal.AppendLine("            col = texture(skydome, vec2((ray_direction.x + 1)/2, (ray_direction.y + 1)/2)).xyz * 0.1;");
             normal.AppendLine("        }");
             normal.AppendLine("    }");
+        }
+        public void rotate(Quaternion rotation)
+        {
+            lookDir = rotation * lookDir;
         }
     }
 }

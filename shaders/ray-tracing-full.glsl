@@ -4,6 +4,7 @@ layout(local_size_x = 1, local_size_y = 1) in;
 
 //image with dimensions
 layout(rgba32f, binding = 0) uniform image2D img_output;
+layout(binding = 1)uniform sampler2D skydome;
 ivec2 dims;
 
 //object arrays
@@ -12,6 +13,7 @@ uniform vec3 areaLightsources[];
 uniform vec3 directionalLightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
+uniform vec3 skydomeDirection;
 
 //function for calculating collisions for normal rays
 void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 col, inout float absorption, inout float refraction, inout vec3 normal);
@@ -37,7 +39,7 @@ void main(){
 
 	//initialization for the ray
 	dims = imageSize(img_output);
-
+	
 	for(int y = 0; y < 2; ++y){
 		for(int x = 0; x < 2; ++x){
 			ray_origin = vec3((float(pixel_coords.x * 2 + 0.5 * x - dims.x) / dims.x), (float(pixel_coords.y * 2 + 0.5 * y - dims.y) / dims.x), 1);
@@ -127,21 +129,85 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 
         s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
         if(s > 0 && s < t) {
             t = s;
-            col = vec3(0, 0, 1); 
+            col = vec3(1, 0, 1); 
             normal = normalize(ray_origin + s * ray_direction - spheres[0]);
             refraction = 0;
-            absorption = 1;
+            absorption = 0.5;
+        }
+    }
+    if(dot(ray_direction, planes[0].xyz) > 0){
+        s = -(dot(ray_origin, planes[0].xyz) + planes[0].w) / dot(ray_direction, planes[0].xyz);
+        if(s > 0 && s < t){
+            t = s;
+            col = vec3(0.2, 0.8, 0.2); 
+            normal = -planes[0].xyz;
+            refraction = 0;
+            absorption = 0.7;
+        }
+    }
+    if(dot(ray_direction, planes[1].xyz) > 0){
+        s = -(dot(ray_origin, planes[1].xyz) + planes[1].w) / dot(ray_direction, planes[1].xyz);
+        if(s > 0 && s < t){
+            t = s;
+            col = vec3(0, 0, 1); 
+            normal = -planes[1].xyz;
+            refraction = 0;
+            absorption = 0.7;
+        }
+    }
+    if(dot(ray_direction, planes[2].xyz) > 0){
+        s = -(dot(ray_origin, planes[2].xyz) + planes[2].w) / dot(ray_direction, planes[2].xyz);
+        if(s > 0 && s < t){
+            t = s;
+            col = vec3(1, 1, 1); 
+            normal = -planes[2].xyz;
+            refraction = 0;
+            absorption = 0.7;
+        }
+    }
+    if(dot(ray_direction, planes[3].xyz) > 0){
+        s = -(dot(ray_origin, planes[3].xyz) + planes[3].w) / dot(ray_direction, planes[3].xyz);
+        if(s > 0 && s < t){
+            t = s;
+            col = vec3(0.25, 0.875, 0.8125); 
+            normal = -planes[3].xyz;
+            refraction = 0;
+            absorption = 0.7;
+        }
+    }
+    if(dot(ray_direction, planes[4].xyz) > 0){
+        s = -(dot(ray_origin, planes[4].xyz) + planes[4].w) / dot(ray_direction, planes[4].xyz);
+        if(s > 0 && s < t){
+            t = s;
+            col = vec3(1, 0, 1); 
+            normal = -planes[4].xyz;
+            refraction = 0;
+            absorption = 0.7;
+        }
+    }
+    if(dot(ray_direction, planes[5].xyz) > 0){
+        s = -(dot(ray_origin, planes[5].xyz) + planes[5].w) / dot(ray_direction, planes[5].xyz);
+        if(s > 0 && s < t){
+            t = s;
+            col = vec3(1, 0, 0); 
+            normal = -planes[5].xyz;
+            refraction = 0;
+            absorption = 0.7;
         }
     }
     vec3 object_position;
-   if(dot(ray_direction, directionalLightsources[0]) > 0.9999){
-       if(9000 < t){
-          t = 9000;
-          col = vec3(1, 1, 1); 
-          normal = vec3(0,0,0);
-          absorption = 1;
-       }
-   }
+    d = 2.0 * dot(ray_origin - areaLightsources[0], ray_direction);
+    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[0], ray_origin - areaLightsources[0]) - 0.04);
+    if(discriminant >= 0) {
+        s = (-d - sqrt(discriminant)) / 2;
+        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
+        if(s > 0 && s < t) {
+            t = s;
+            col = vec3(1, 1, 1);
+            normal = vec3(0,0,0);
+            absorption = 1;
+        }
+    }
     d = 2.0 * dot(ray_origin, ray_direction);
     discriminant = d * d - 4 * (dot(ray_origin, ray_origin) - 10000);
     if(discriminant >= 0) {
@@ -151,7 +217,7 @@ void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 
             normal = vec3(0,0,0);
             refraction = 0;
             absorption = 1;
-            col = ray_direction;
+            col = texture(skydome, vec2((ray_direction.x + 1)/2, (ray_direction.y + 1)/2)).xyz * 0.1;
         }
     }
 }
@@ -164,18 +230,21 @@ void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){
     bool collision;
     vec3 object_color;
     vec3 point_of_intersection;
-    tmax = 10000;
-    angle = dot(normal, directionalLightsources[0]);
-    point_of_intersection = ray_origin + directionalLightsources[0] * 0.0001;
-    collision = false;
+    light_direction = areaLightsources[0] - ray_origin;
+    tmax = length(light_direction) - 0.0002;
+    lightsource_emittance = 1 / (12.456 * length(light_direction) * length(light_direction));
+    light_direction = normalize(light_direction);
     if(normal == vec3(0,0,0))
-        angle = 2;
+        angle = 1;
     else
-        angle = dot(normal, directionalLightsources[0]);
+        angle = dot(normal, light_direction);
+    point_of_intersection = ray_origin + light_direction * 0.0001;
+    collision = false;
+    if(angle < 0) collision = true;
     if(!collision){
-        collision = calcObjects(point_of_intersection, directionalLightsources[0], tmax);
+        collision = calcObjects(point_of_intersection, light_direction, tmax);
         if(!collision){
-            color += vec3(1, 1, 1) * energy * 0.2 * angle * absorption * 0.25;
+            color += vec3(1, 1, 1) * lightsource_emittance * energy * angle * absorption * 0.25;
         }
     }
 }
