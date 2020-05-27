@@ -13,10 +13,20 @@ Features 3D:
 - Player movement: 					Sietze
 - Render spheres, planes and triangles: 		Sietze and Tieke
 - Colored lightsources: 				Sietze and Tieke
+- Multiple scenes: 					Sietze and Tieke
+- Mesh rendering: 					Sietze
+- Skydome: 						Sietze
 
 Operation: 
 - Arrows: move player
 - WASD: rotate player
+- E: go to next scene
+- Q: go to previous scene 
+
+Notes:
+- 5th scene takes long to render, but the result is very nice
+- Try to move around in the scene, they get much more interesting. 
+- Some scenes have a lot of triangles, so moving is a bit slower
 
 Used materials:
 - https://learnopengl.com/Advanced-Lighting/HDR
