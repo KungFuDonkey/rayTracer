@@ -10,7 +10,7 @@ namespace Template
     class sphere : @object
     {
         public float radius;
-        public sphere(Vector3 _position, float _radius, int _color, float _absorption = 1, float _refraction)
+        public sphere(Vector3 _position, float _radius, int _color, float _absorption = 1, float _refraction = 0)
         {
             position = _position;
             radius = _radius;
@@ -19,7 +19,7 @@ namespace Template
             refraction = _refraction;
         }
 
-        public override void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder faster)
+        public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal, StringBuilder faster)
         {
             index = array.Count / 3;
             array.Add(position.X);
@@ -33,18 +33,22 @@ namespace Template
             normal.AppendLine("        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;");
             normal.AppendLine("        if(s > 0 && s < t) {");
             normal.AppendLine("            t = s;");
-            normal.AppendLine("            col = " + color + ";");
+            normal.AppendLine("            col = vec3(" + colors[color*3] + ", " + colors[color * 3 + 1] + ", " + colors[color * 3 + 2]+"); ");
             normal.AppendLine("            normal = normalize(ray_origin + s * ray_direction - spheres[" + index + "]);");
+            normal.AppendLine("            refraction = " + refraction + ";");
             normal.AppendLine("            absorption = " + absorption + ";");
             normal.AppendLine("        }");
             normal.AppendLine("    }");
-            faster.AppendLine("    d = 2.0 * dot(ray_origin - spheres[" + index + "], ray_direction);");
-            faster.AppendLine("    discriminant = d * d - 4 * (dot(ray_origin - spheres[" + index + "], ray_origin - spheres[" + index + "]) - " + (radius * radius) + ");");
-            faster.AppendLine("    if(discriminant >= 0) {");
-            faster.AppendLine("        s = (-d - sqrt(discriminant)) / 2;");
-            faster.AppendLine("        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;");
-            faster.AppendLine("        if(s > 0 && s < tmax) return true;");
-            faster.AppendLine("    }");
+            if (refraction == 0)
+            {
+                faster.AppendLine("    d = 2.0 * dot(ray_origin - spheres[" + index + "], ray_direction);");
+                faster.AppendLine("    discriminant = d * d - 4 * (dot(ray_origin - spheres[" + index + "], ray_origin - spheres[" + index + "]) - " + (radius * radius) + ");");
+                faster.AppendLine("    if(discriminant >= 0) {");
+                faster.AppendLine("        s = (-d - sqrt(discriminant)) / 2;");
+                faster.AppendLine("        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;");
+                faster.AppendLine("        if(s > 0 && s < tmax) return true;");
+                faster.AppendLine("    }");
+            }
         }
         public override void move(Vector3 direction, float[] array)
         {

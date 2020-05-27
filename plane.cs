@@ -22,7 +22,7 @@ namespace Template
             refraction = _refraction;
 		}
 
-        public void AddToArray(ref List<float> array, StringBuilder normal)
+        public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal)
         {
             index = array.Count / 4;
             array.Add(plane_normal.X);
@@ -33,8 +33,9 @@ namespace Template
             normal.AppendLine("        s = -(dot(ray_origin, planes[" + index + "].xyz) + planes[" + index + "].w) / dot(ray_direction, planes[" + index + "].xyz);");
             normal.AppendLine("        if(s > 0 && s < t){");
             normal.AppendLine("            t = s;");
-            normal.AppendLine("            col = " + color + ";");
+            normal.AppendLine("            col = vec3(" + colors[color * 3] + ", " + colors[color * 3 + 1] + ", " + colors[color * 3 + 2] + "); ");
             normal.AppendLine("            normal = -planes[" + index + "].xyz;");
+            normal.AppendLine("            refraction = "+ refraction + ";");
             normal.AppendLine("            absorption = " + absorption + ";");
             normal.AppendLine("        }");
             normal.AppendLine("    }");

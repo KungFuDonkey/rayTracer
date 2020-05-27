@@ -12,10 +12,9 @@ uniform vec3 areaLightsources[];
 uniform vec3 directionalLightsources[];
 uniform vec4 planes[];
 uniform vec3 vertices[];
-uniform vec3 colors[];
 
 //function for calculating collisions for normal rays
-void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float col, inout float absorption, inout vec3 normal);
+void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 col, inout float absorption, inout float refraction, inout vec3 normal);
 
 //function for calculating collisions for light rays
 bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax);
@@ -48,33 +47,42 @@ void main(){
 			vec3 next_color = vec3(0, 0, 0);
 			vec3 normal = vec3(0, 0, 0);
 			float absorption = 0;
+			float refraction =0;
 			energy = vec3(1, 1, 1);
-			float col = 19;
 			for(int i = 0; i < 5; ++i){
-				calcObjects(ray_origin, ray_direction, t, col, absorption, normal);
+				calcObjects(ray_origin, ray_direction, t, next_color, absorption, refraction, normal);
 
 				if(t != 100000){
-
 					//update the ray energy, if energy == 0 then stop the loop as there will be no colors left to write 
-					getColor(int(col), next_color);
 					energy *= next_color;
 					if(energy == vec3(0,0,0)) break;
-
 					//create point of intersection 
 					ray_origin = ray_origin + t * ray_direction;
 
 					//arealightsources, gets arealightsource and calculates the luminance
-					calcAreaLightSources(ray_origin, absorption, normal);
 
-					//if absorption == 1 then the ray will be absorped otherwise reflect the ray
-					if(absorption != 1){
-						ray_direction = reflect(ray_direction,normal);
-						
-						ray_origin += ray_direction * 0.0001;
+					if(refraction != 0){
+						ray_direction = normalize(ray_direction * refraction - normal * (-dot(normal, ray_direction) + refraction * dot(normal, ray_direction)));
+						ray_origin += ray_direction * 0.0002;
 						t = 100000;
 					}
-					else
-						break;
+					else{
+						calcAreaLightSources(ray_origin, absorption, normal);
+
+
+						//if absorption == 1 then the ray will be absorped otherwise reflect the ray
+
+						if(absorption != 1){
+
+							ray_direction = normalize(reflect(ray_direction,normal));
+							ray_origin += ray_direction * 0.0001;
+							t = 100000;
+						}
+						else
+							break;
+					}
+
+
 				}
 				else
 					break;
@@ -88,82 +96,17 @@ void main(){
     color = vec3(1.0) - exp(-color * 5);
     // gamma correction 
     color = pow(color, vec3(1.0 / gamma));
-  
 	//store the pixel color in the image
 	imageStore(img_output, pixel_coords, vec4(color,1));
 }
 
-
-//void for getting the colors out of the array, as GLSL doesn't have dynamic looping it has to be done like this
-void getColor(int index, out vec3 color){
-	if(index == 0){
-		color = colors[0];
-	}
-	else if(index == 1){
-		color = colors[1];
-	}
-	else if(index == 2){
-		color = colors[2];
-	}
-	else if(index == 3){
-		color = colors[3];
-	}
-	else if(index == 4){
-		color = colors[4];
-	}
-	else if(index == 5){
-		color = colors[5];
-	}
-	else if(index == 6){
-		color = colors[6];
-	}
-	else if(index == 7){
-		color = colors[7];
-	}
-	else if(index == 8){
-		color = colors[8];
-	}
-	else if(index == 9){
-		color = colors[9];
-	}
-	else if(index == 10){
-		color = colors[10];
-	}
-	else if(index == 11){
-		color = colors[11];
-	}
-	else if(index == 12){
-		color = colors[12];
-	}
-	else if(index == 13){
-		color = colors[13];
-	}
-	else if(index == 14){
-		color = colors[14];
-	}
-	else if(index == 15){
-		color = colors[15];
-	}
-	else if(index == 16){
-		color = colors[16];
-	}
-	else if(index == 17){
-		color = colors[17];
-	}
-	else if(index == 18){
-		color = colors[18];
-	}
-	else if(index == 19){
-		color = colors[19];
-	}
-}
 
 bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){
     float d;
     float discriminant;
     float s;
     d = 2.0 * dot(ray_origin - spheres[0], ray_direction);
-    discriminant = d * d - 4 * (dot(ray_origin - spheres[0], ray_origin - spheres[0]) - 1);
+    discriminant = d * d - 4 * (dot(ray_origin - spheres[0], ray_origin - spheres[0]) - 0.25);
     if(discriminant >= 0) {
         s = (-d - sqrt(discriminant)) / 2;
         s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
@@ -173,60 +116,42 @@ bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){
     return false;
 }
 
-void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float col, inout float absorption, inout vec3 normal){
+void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 col, inout float absorption, inout float refraction, inout vec3 normal){
     float d;
     float discriminant;
     float s;
     d = 2.0 * dot(ray_origin - spheres[0], ray_direction);
-    discriminant = d * d - 4 * (dot(ray_origin - spheres[0], ray_origin - spheres[0]) - 1);
+    discriminant = d * d - 4 * (dot(ray_origin - spheres[0], ray_origin - spheres[0]) - 0.25);
     if(discriminant >= 0) {
         s = (-d - sqrt(discriminant)) / 2;
         s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
         if(s > 0 && s < t) {
             t = s;
-            col = 2;
+            col = vec3(0, 0, 1); 
             normal = normalize(ray_origin + s * ray_direction - spheres[0]);
-            absorption = 0.5;
-        }
-    }
-    if(dot(ray_direction, planes[0].xyz) > 0){
-        s = -(dot(ray_origin, planes[0].xyz) + planes[0].w) / dot(ray_direction, planes[0].xyz);
-        if(s > 0 && s < t){
-            t = s;
-            col = 0;
-            normal = -planes[0].xyz;
-            absorption = 0.7;
-        }
-    }
-    if(dot(ray_direction, planes[1].xyz) > 0){
-        s = -(dot(ray_origin, planes[1].xyz) + planes[1].w) / dot(ray_direction, planes[1].xyz);
-        if(s > 0 && s < t){
-            t = s;
-            col = 0;
-            normal = -planes[1].xyz;
-            absorption = 0.7;
-        }
-    }
-    if(dot(ray_direction, planes[2].xyz) > 0){
-        s = -(dot(ray_origin, planes[2].xyz) + planes[2].w) / dot(ray_direction, planes[2].xyz);
-        if(s > 0 && s < t){
-            t = s;
-            col = 0;
-            normal = -planes[2].xyz;
-            absorption = 0.7;
+            refraction = 0;
+            absorption = 1;
         }
     }
     vec3 object_position;
-    d = 2.0 * dot(ray_origin - areaLightsources[0], ray_direction);
-    discriminant = d * d - 4 * (dot(ray_origin - areaLightsources[0], ray_origin - areaLightsources[0]) - 0.04);
+   if(dot(ray_direction, directionalLightsources[0]) > 0.9999){
+       if(9000 < t){
+          t = 9000;
+          col = vec3(1, 1, 1); 
+          normal = vec3(0,0,0);
+          absorption = 1;
+       }
+   }
+    d = 2.0 * dot(ray_origin, ray_direction);
+    discriminant = d * d - 4 * (dot(ray_origin, ray_origin) - 10000);
     if(discriminant >= 0) {
-        s = (-d - sqrt(discriminant)) / 2;
-        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;
+        s = (-d + sqrt(discriminant)) / 2;
         if(s > 0 && s < t) {
             t = s;
-            col = 0;
             normal = vec3(0,0,0);
+            refraction = 0;
             absorption = 1;
+            col = ray_direction;
         }
     }
 }
@@ -237,25 +162,20 @@ void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){
     float tmax;
     float angle;
     bool collision;
-    vec3 lightsource_color;
     vec3 object_color;
     vec3 point_of_intersection;
-    light_direction = areaLightsources[0] - ray_origin;
-    tmax = length(light_direction) - 0.0002;
-    lightsource_emittance = 1 / (12.456 * length(light_direction) * length(light_direction));
-    light_direction = normalize(light_direction);
-    if(normal == vec3(0,0,0))
-        angle = 1;
-    else
-        angle = dot(normal, light_direction);
-    point_of_intersection = ray_origin + light_direction * 0.0001;
+    tmax = 10000;
+    angle = dot(normal, directionalLightsources[0]);
+    point_of_intersection = ray_origin + directionalLightsources[0] * 0.0001;
     collision = false;
-    if(angle < 0) collision = true;
+    if(normal == vec3(0,0,0))
+        angle = 2;
+    else
+        angle = dot(normal, directionalLightsources[0]);
     if(!collision){
-        collision = calcObjects(point_of_intersection, light_direction, tmax);
+        collision = calcObjects(point_of_intersection, directionalLightsources[0], tmax);
         if(!collision){
-            getColor(int(0), lightsource_color);
-            color += lightsource_color * lightsource_emittance * energy * angle * absorption * 0.25;
+            color += vec3(1, 1, 1) * energy * 0.2 * angle * absorption * 0.25;
         }
     }
 }

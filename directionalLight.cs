@@ -22,7 +22,7 @@ namespace Template
 			strength = _strength;
 		}
 
-		public void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder light)
+		public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal, StringBuilder light)
 		{
             index = array.Count / 3;
             array.Add(direction.X);
@@ -33,20 +33,19 @@ namespace Template
             light.AppendLine("    point_of_intersection = ray_origin + directionalLightsources[" + index + "] * 0.0001;");
             light.AppendLine("    collision = false;");
             light.AppendLine("    if(normal == vec3(0,0,0))");
-            light.AppendLine("        angle = 99;");
+            light.AppendLine("        angle = 2;");
             light.AppendLine("    else");
-            light.AppendLine("        angle = dot(normal, light_direction);");
+            light.AppendLine("        angle = dot(normal, directionalLightsources[" + index + "]);");
             light.AppendLine("    if(!collision){");
             light.AppendLine("        collision = calcObjects(point_of_intersection, directionalLightsources[" + index + "], tmax);");
             light.AppendLine("        if(!collision){");
-            light.AppendLine("            getColor(int(" + color + "), lightsource_color);");
-            light.AppendLine("            color += lightsource_color * energy * " + strength + " * angle * absorption * 0.25;");
+            light.AppendLine("            color += vec3(" + colors[color * 3] + ", " + colors[color * 3 + 1] + ", " + colors[color * 3 + 2] + ") * energy * " + strength + " * angle * absorption * 0.25;");
             light.AppendLine("        }");
             light.AppendLine("    }");
             normal.AppendLine("   if(dot(ray_direction, directionalLightsources[" + index + "]) > 0.9999){");
             normal.AppendLine("       if(9000 < t){");
             normal.AppendLine("          t = 9000;");
-            normal.AppendLine("          col = " + color + ";");
+            normal.AppendLine("          col = vec3(" + colors[color * 3] + ", " + colors[color * 3 + 1] + ", " + colors[color * 3 + 2] + "); ");
             normal.AppendLine("          normal = vec3(0,0,0);");
             normal.AppendLine("          absorption = 1;");
             normal.AppendLine("       }");

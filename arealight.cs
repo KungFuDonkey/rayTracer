@@ -17,7 +17,7 @@ namespace Template
 			shape = _shape;
 		}
 
-        public void AddToArray(ref List<float> array, StringBuilder normal, StringBuilder light)
+        public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal, StringBuilder light)
         {
             index = array.Count / 3;
             array.Add(shape.position.X);
@@ -37,8 +37,7 @@ namespace Template
             light.AppendLine("    if(!collision){");
             light.AppendLine("        collision = calcObjects(point_of_intersection, light_direction, tmax);");
             light.AppendLine("        if(!collision){");
-            light.AppendLine("            getColor(int(" + shape.color + "), lightsource_color);");
-            light.AppendLine("            color += lightsource_color * lightsource_emittance * energy * angle * absorption * 0.25;");
+            light.AppendLine("            color += vec3(" + colors[shape.color * 3] + ", " + colors[shape.color * 3 + 1] + ", " + colors[shape.color * 3 + 2] + ") * lightsource_emittance * energy * angle * absorption * 0.25;");
             light.AppendLine("        }");
             light.AppendLine("    }");
             normal.AppendLine("    d = 2.0 * dot(ray_origin - areaLightsources[" + index + "], ray_direction);");
@@ -48,7 +47,7 @@ namespace Template
             normal.AppendLine("        s = s < 0 ? (-d + sqrt(discriminant)) / 2 : s;");
             normal.AppendLine("        if(s > 0 && s < t) {");
             normal.AppendLine("            t = s;");
-            normal.AppendLine("            col = " + shape.color + ";");
+            normal.AppendLine("            col = vec3(" + colors[shape.color * 3] + ", " + colors[shape.color * 3 + 1] + ", " + colors[shape.color * 3 + 2] + ");");
             normal.AppendLine("            normal = vec3(0,0,0);");
             normal.AppendLine("            absorption = 1;");
             normal.AppendLine("        }");

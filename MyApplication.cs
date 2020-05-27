@@ -66,109 +66,6 @@ namespace Template
             GL.BindImageTexture(0, tex_output, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba32f);
 
 
-            //create objects for the scene
-            arealights = new List<arealight>();
-            arealights.Add(new arealight(1, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
-
-            directionalLights = new List<directionalLight>();
-            //directionalLights.Add(new directionalLight(new Vector3(0,1,0), 0, 0.2f));
-
-            sphere = new List<sphere>();
-            sphere.Add(new sphere(new Vector3(0, 0, 2), 1f, 2, 0.5f));
-            //sphere.Add(new sphere(new Vector3(0, 1, 2), 0.5f, 3));
-
-            plane = new List<plane>();
-            plane.Add(new plane(2f, 0, new Quaternion(0, rad(90), 0), 0.7f));
-            plane.Add(new plane(2f, 0, new Quaternion(0, rad(-90), 0), 0.7f));
-            plane.Add(new plane(3f, 0, Quaternion.Identity, 0.7f));
-
-            shape = new List<shapes>();
-            //shape.Add(new mesh(monkey, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
-            //shape.Add(new mesh(cube, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
-            //shape.Add(new box(new Vector3(0, 0, 2), new Vector3(1, 1, 1), 3, Quaternion.Identity));
-
-            //read base shader
-            List<string> lines = new List<string>() {
-                File.ReadAllText("../../shaders/ray-tracing-base.glsl")
-            };
-            //add the objects to float arrays and build GLSL functions for the objects
-            StringBuilder normal = new StringBuilder("void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout float col, inout float absorption, inout float refraction, inout vec3 normal){\n");
-            StringBuilder faster = new StringBuilder("bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){\n");
-            normal.AppendLine("    float d;");
-            normal.AppendLine("    float discriminant;");
-            normal.AppendLine("    float s;");
-            faster.AppendLine("    float d;");
-            faster.AppendLine("    float discriminant;");
-            faster.AppendLine("    float s;");
-            List<float> floats = new List<float>();
-            foreach(sphere s in sphere)
-            {
-                s.AddToArray(ref floats, normal, faster);
-            }
-            spheres = floats.ToArray();
-            sphereLength = spheres.Length / 3;
-
-            floats = new List<float>();
-            foreach(plane p in plane)
-            {
-                p.AddToArray(ref floats, normal);
-            }
-            planes = floats.ToArray();
-            planeLength = planes.Length / 4;
-
-            normal.AppendLine("    vec3 object_position;");
-            faster.AppendLine("    vec3 object_position;");
-            floats = new List<float>();
-            List<float> tr = new List<float>();
-            foreach(shapes s in shape)
-            {
-                s.AddToArray(ref floats);
-                foreach(triangle t in s.shape)
-                {
-                    t.AddToArray(normal, faster);
-                }
-            }
-            vertices = floats.ToArray();
-            verticeLength = vertices.Length / 3;
-
-            faster.AppendLine("    return false;");
-            faster.AppendLine("}");
-            lines.Add(faster.ToString());
-
-
-            faster = new StringBuilder("void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){\n");
-            faster.AppendLine("    float lightsource_emittance;");
-            faster.AppendLine("    vec3 light_direction;");
-            faster.AppendLine("    float tmax;");
-            faster.AppendLine("    float angle;");
-            faster.AppendLine("    bool collision;");
-            faster.AppendLine("    vec3 lightsource_color;");
-            faster.AppendLine("    vec3 object_color;");
-            faster.AppendLine("    vec3 point_of_intersection;");
-            floats = new List<float>();
-            foreach (arealight l in arealights)
-            {
-                l.AddToArray(ref floats, normal, faster);
-            }
-            areaLightsources = floats.ToArray();
-            areaLightsourcesLength = areaLightsources.Length / 3;
-
-            foreach (directionalLight d in directionalLights)
-            {
-                d.AddToArray(ref floats, normal, faster);
-            }
-            directionalLightsources = floats.ToArray();
-            directionalLightsourcesLength = directionalLightsources.Length / 3;
-            normal.AppendLine("}");
-            faster.AppendLine("}");
-
-            lines.Add(normal.ToString());
-            lines.Add(faster.ToString());
-
-            //produce new shader
-            File.WriteAllLines("../../shaders/ray-tracing-full.glsl", lines);
-
-            //colorpalette for scene
             colors = new float[60]
             {
                 1, 1, 1, //white
@@ -192,6 +89,110 @@ namespace Template
                 0, 0, 0,
                 0, 0, 0 //black
             };
+            //create objects for the scene
+            arealights = new List<arealight>();
+            //arealights.Add(new arealight(1, new sphere(new Vector3(0, 1, 0), 0.2f, 0)));
+
+            directionalLights = new List<directionalLight>();
+            directionalLights.Add(new directionalLight(new Vector3(0,1,0), 0, 0.2f));
+
+            sphere = new List<sphere>();
+            //sphere.Add(new sphere(new Vector3(0, 0, 1), 0.5f, 0, 1f, 1.517f)) ;
+            sphere.Add(new sphere(new Vector3(0, 0, 2), 0.5f, 3));
+
+            plane = new List<plane>();
+            //plane.Add(new plane(2f, 0, new Quaternion(0, rad(90), 0), 0.7f));
+            //plane.Add(new plane(2f, 0, new Quaternion(0, rad(-90), 0), 0.7f));
+            //plane.Add(new plane(3f, 0, Quaternion.Identity, 0.7f));
+
+            shape = new List<shapes>();
+            //shape.Add(new mesh(monkey, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
+            //shape.Add(new mesh(cube, new Vector3(0,0,2), 3, Quaternion.Identity, 1));
+            //shape.Add(new box(new Vector3(0, 0, 2), new Vector3(1, 1, 1), 3, Quaternion.Identity));
+
+            //read base shader
+            List<string> lines = new List<string>() {
+                File.ReadAllText("../../shaders/ray-tracing-base.glsl")
+            };
+            //add the objects to float arrays and build GLSL functions for the objects
+            StringBuilder normal = new StringBuilder("void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 col, inout float absorption, inout float refraction, inout vec3 normal){\n");
+            StringBuilder faster = new StringBuilder("bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){\n");
+            normal.AppendLine("    float d;");
+            normal.AppendLine("    float discriminant;");
+            normal.AppendLine("    float s;");
+            faster.AppendLine("    float d;");
+            faster.AppendLine("    float discriminant;");
+            faster.AppendLine("    float s;");
+            List<float> floats = new List<float>();
+            foreach(sphere s in sphere)
+            {
+                s.AddToArray(ref floats, colors, normal, faster);
+            }
+            spheres = floats.ToArray();
+            sphereLength = spheres.Length / 3;
+
+            floats = new List<float>();
+            foreach(plane p in plane)
+            {
+                p.AddToArray(ref floats, colors, normal);
+            }
+            planes = floats.ToArray();
+            planeLength = planes.Length / 4;
+
+            normal.AppendLine("    vec3 object_position;");
+            faster.AppendLine("    vec3 object_position;");
+            floats = new List<float>();
+            List<float> tr = new List<float>();
+            foreach(shapes s in shape)
+            {
+                s.AddToArray(ref floats);
+                foreach(triangle t in s.shape)
+                {
+                    t.AddToArray(colors, normal, faster);
+                }
+            }
+            vertices = floats.ToArray();
+            verticeLength = vertices.Length / 3;
+
+            faster.AppendLine("    return false;");
+            faster.AppendLine("}");
+            lines.Add(faster.ToString());
+
+
+            faster = new StringBuilder("void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){\n");
+            faster.AppendLine("    float lightsource_emittance;");
+            faster.AppendLine("    vec3 light_direction;");
+            faster.AppendLine("    float tmax;");
+            faster.AppendLine("    float angle;");
+            faster.AppendLine("    bool collision;");
+            faster.AppendLine("    vec3 object_color;");
+            faster.AppendLine("    vec3 point_of_intersection;");
+            floats = new List<float>();
+            foreach (arealight l in arealights)
+            {
+                l.AddToArray(ref floats,colors, normal, faster);
+            }
+            areaLightsources = floats.ToArray();
+            areaLightsourcesLength = areaLightsources.Length / 3;
+
+            foreach (directionalLight d in directionalLights)
+            {
+                d.AddToArray(ref floats, colors, normal, faster);
+            }
+            directionalLightsources = floats.ToArray();
+            directionalLightsourcesLength = directionalLightsources.Length / 3;
+            skydome skye = new skydome();
+            skye.AddToArray(normal);
+            normal.AppendLine("}");
+            faster.AppendLine("}");
+
+            lines.Add(normal.ToString());
+            lines.Add(faster.ToString());
+
+            //produce new shader
+            File.WriteAllLines("../../shaders/ray-tracing-full.glsl", lines);
+
+
 
             //create compute shader program
             ray_program = GL.CreateProgram();
