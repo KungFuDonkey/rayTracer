@@ -22,13 +22,19 @@ namespace Template
 			Vector3 right = rotation * Vector3.UnitX;
 			Vector3 up = rotation * Vector3.UnitY;
 			Vector3 forward = rotation * Vector3.UnitZ;
+<<<<<<< HEAD
             vertices = new Vector3[5];
+=======
+
+			//Create vertices
+>>>>>>> 09d6f02809383ce6fa0666e2e2ebbcdb40899b34
 			vertices[0] = position + up * dimensions.Y;
 			vertices[1] = position - up * dimensions.Y - right * dimensions.X - forward * dimensions.Z;
 			vertices[2] = position - up * dimensions.Y + right * dimensions.X - forward * dimensions.Z;
 			vertices[3] = position - up * dimensions.Y - right * dimensions.X + forward * dimensions.Z;
 			vertices[4] = position - up * dimensions.Y + right * dimensions.X + forward * dimensions.Z;
 
+			//Create triangles based on vertices
             shape = new triangle[6];
             shape[0] = new triangle(0, 1, 2, _color, _absorption);
 			shape[1] = new triangle(0, 3, 1, _color, _absorption);

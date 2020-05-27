@@ -33,6 +33,20 @@ bool hitObjects(vec2 ray_o, vec2 ray_d, float tmax){
     float b;
     float s;
     float discriminant;
+    b = 2.0 * dot(ray_o - circles[0].xy, ray_d);
+    discriminant = b * b - 4 * (dot(ray_o - circles[0].xy, ray_o - circles[0].xy) - circles[0].z * circles[0].z);
+    if(discriminant >= 0){
+       s = (-b - sqrt(discriminant)) / 2;
+       s = s < 0 ? (-b + sqrt(discriminant)) / 2 : s;
+       if(s >= 0 && s < tmax) return true;
+    }
+    b = 2.0 * dot(ray_o - circles[1].xy, ray_d);
+    discriminant = b * b - 4 * (dot(ray_o - circles[1].xy, ray_o - circles[1].xy) - circles[1].z * circles[1].z);
+    if(discriminant >= 0){
+       s = (-b - sqrt(discriminant)) / 2;
+       s = s < 0 ? (-b + sqrt(discriminant)) / 2 : s;
+       if(s >= 0 && s < tmax) return true;
+    }
     vec2 line;
     line = normalize(boxes[1] - boxes[0]);
     b = distance(boxes[0], boxes[1]);

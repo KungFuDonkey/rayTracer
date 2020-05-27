@@ -22,12 +22,15 @@ namespace Template
 			strength = _strength;
 		}
 
-		public void AddToArray(ref List<float> array, float[] colors, StringBuilder normal, StringBuilder light)
+        //Build GLSL functions
+		public void AddToArray(List<float> array, float[] colors, StringBuilder normal, StringBuilder light)
 		{
             index = array.Count / 3;
+
             array.Add(direction.X);
             array.Add(direction.Y);
             array.Add(direction.Z);
+
             light.AppendLine("    tmax = 10000;");
             light.AppendLine("    angle = dot(normal, directionalLightsources[" + index + "]);");
             light.AppendLine("    point_of_intersection = ray_origin + directionalLightsources[" + index + "] * 0.0001;");
@@ -42,6 +45,7 @@ namespace Template
             light.AppendLine("            color += vec3(" + colors[color * 3] + ", " + colors[color * 3 + 1] + ", " + colors[color * 3 + 2] + ") * energy * " + strength + " * angle * absorption * 0.25;");
             light.AppendLine("        }");
             light.AppendLine("    }");
+
             normal.AppendLine("   if(dot(ray_direction, directionalLightsources[" + index + "]) > 0.9999){");
             normal.AppendLine("       if(9000 < t){");
             normal.AppendLine("          t = 9000;");
@@ -52,9 +56,11 @@ namespace Template
             normal.AppendLine("   }");
         }
 
+        //Rotate light based on user input
         public void rotate(Quaternion rotation, float[] array)
         {
             direction = rotation * direction;
+
             array[index * 3] = direction.X;
             array[index * 3 + 1] = direction.Y;
             array[index * 3 + 2] = direction.Z;

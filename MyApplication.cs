@@ -32,6 +32,7 @@ namespace Template
         float[] directionalLightsources;
         float[] vertices;
         float[] colors;
+
         int sphereLength;
         int planeLength;
         int areaLightsourcesLength;
@@ -50,12 +51,12 @@ namespace Template
         Vector3 moveDirection;
         Quaternion rotation;
         Stopwatch gameTime;
-        // initialize
+
+        //Initialize
         public void Init()
         {
-            //obj monkey = new obj("../../shapes/monkey.obj");
+            //Dimensions of the image
 
-            //dimensions of the image
             tex_w = screen.width;
             tex_h = screen.height;
 
@@ -85,10 +86,10 @@ namespace Template
             GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)All.Linear });
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, tex_w, tex_h, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
 
-            //set the acces to write only for the compute shader
+            //Set the acces to write only for the compute shader
             GL.BindImageTexture(0, tex_output, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba32f);
 
-
+            //Set the colors used in the scene
             colors = new float[60]
             {
                 1, 1, 1, //white                            0
@@ -199,16 +200,20 @@ namespace Template
 
                 sphere = new List<sphere>();
 
+
                 plane = new List<plane>();
 
                 shape = new List<shapes>();
                 shape.Add(new mesh(tree, new Vector3(0, 0, 2), 9, Quaternion.Identity, 0.2f));
             }
-            //read base shader
+
+            //Read base shader
+
             List<string> lines = new List<string>() {
                 File.ReadAllText("../../shaders/ray-tracing-base.glsl")
             };
-            //add the objects to float arrays and build GLSL functions for the objects
+
+            //Add the objects to float arrays and build GLSL functions for the objects
             StringBuilder normal = new StringBuilder("void calcObjects(vec3 ray_origin, vec3 ray_direction, inout float t, inout vec3 col, inout float absorption, inout float refraction, inout vec3 normal){\n");
             StringBuilder faster = new StringBuilder("bool calcObjects(vec3 ray_origin, vec3 ray_direction, float tmax){\n");
             normal.AppendLine("    float d;");
@@ -217,10 +222,11 @@ namespace Template
             faster.AppendLine("    float d;");
             faster.AppendLine("    float discriminant;");
             faster.AppendLine("    float s;");
+
             List<float> floats = new List<float>();
             foreach (sphere s in sphere)
             {
-                s.AddToArray(ref floats, colors, normal, faster);
+                s.AddToArray(floats, colors, normal, faster);
             }
             spheres = floats.ToArray();
             sphereLength = spheres.Length / 3;
@@ -228,19 +234,20 @@ namespace Template
             floats = new List<float>();
             foreach (plane p in plane)
             {
-                p.AddToArray(ref floats, colors, normal);
+                p.AddToArray(floats, colors, normal);
             }
             planes = floats.ToArray();
             planeLength = planes.Length / 4;
 
             normal.AppendLine("    vec3 object_position;");
             faster.AppendLine("    vec3 object_position;");
+
             floats = new List<float>();
             List<float> tr = new List<float>();
             foreach (shapes s in shape)
             {
-                s.AddToArray(ref floats);
-                foreach (triangle t in s.shape)
+                s.AddToArray(floats);
+                foreach(triangle t in s.shape)
                 {
                     t.AddToArray(colors, normal, faster);
                 }
@@ -252,7 +259,6 @@ namespace Template
             faster.AppendLine("}");
             lines.Add(faster.ToString());
 
-
             faster = new StringBuilder("void calcAreaLightSources(vec3 ray_origin, float absorption, vec3 normal){\n");
             faster.AppendLine("    float lightsource_emittance;");
             faster.AppendLine("    vec3 light_direction;");
@@ -261,20 +267,23 @@ namespace Template
             faster.AppendLine("    bool collision;");
             faster.AppendLine("    vec3 object_color;");
             faster.AppendLine("    vec3 point_of_intersection;");
+
             floats = new List<float>();
             foreach (arealight l in arealights)
             {
-                l.AddToArray(ref floats, colors, normal, faster);
+                l.AddToArray(floats,colors, normal, faster);
             }
             areaLightsources = floats.ToArray();
             areaLightsourcesLength = areaLightsources.Length / 3;
 
             foreach (directionalLight d in directionalLights)
             {
-                d.AddToArray(ref floats, colors, normal, faster);
+                d.AddToArray(floats, colors, normal, faster);
             }
             directionalLightsources = floats.ToArray();
             directionalLightsourcesLength = directionalLightsources.Length / 3;
+
+            skydome skye = new skydome();
 
             skye.AddToArray(normal);
             normal.AppendLine("}");
@@ -283,19 +292,17 @@ namespace Template
             lines.Add(normal.ToString());
             lines.Add(faster.ToString());
 
-            //produce new shader
+            //Produce new shader
             File.WriteAllLines("../../shaders/ray-tracing-full.glsl", lines);
 
-
-
-            //create compute shader program
+            //Create compute shader program
             ray_program = GL.CreateProgram();
 
             int ray_shader = 0;
             LoadShader("../../shaders/ray-tracing-full.glsl", ShaderType.ComputeShader, ray_program, out ray_shader);
             GL.LinkProgram(ray_program);
 
-            //get arrays of the shader
+            //Get arrays of the shader
             attributeSpheres = GL.GetUniformLocation(ray_program, "spheres");
             attributeAreaLightsources = GL.GetUniformLocation(ray_program, "areaLightsources");
             attributeDirectionalLightsources = GL.GetUniformLocation(ray_program, "directionalLightsources");
@@ -307,9 +314,11 @@ namespace Template
         // tick: renders one frame
         KeyboardState keys;
         KeyboardState prevkeys;
+
+        //Render one frame
         public void Tick()
         {
-            //bind arrays to compute shader
+            //Bind arrays to compute shader
             GL.Uniform3(attributeSpheres, sphereLength, spheres);
             GL.Uniform3(attributeAreaLightsources, areaLightsourcesLength, areaLightsources);
             GL.Uniform3(attributeDirectionalLightsources, directionalLightsourcesLength, directionalLightsources);
@@ -317,14 +326,14 @@ namespace Template
             GL.Uniform3(attributeVertices, verticeLength, vertices);
             GL.Uniform3(attributeColor, 20, colors);
             GL.Uniform3(attributeSkydome, skye.lookDir);
-            //run compute shader
+            //Run compute shader
             GL.UseProgram(ray_program);
             GL.DispatchCompute(tex_w, tex_h, 1);
 
-            //wait for all pixels to render
+            //Wait for all pixels to render
             GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
 
-            //bind new image to screen filling quad
+            //Bind new image to screen filling quad
             GL.Enable(EnableCap.Texture2D);
             GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.BindTexture(TextureTarget.Texture2D, tex_output);
@@ -336,11 +345,12 @@ namespace Template
             GL.End();
             GL.Disable(EnableCap.Texture2D);
 
-
             //movement for the player
             prevkeys = keys;
             keys = Keyboard.GetState();
+
             moveDirection = Vector3.Zero;
+
             if (keys[Key.Up])
                 moveDirection.Z = 1;
             else if (keys[Key.Down])
@@ -349,7 +359,9 @@ namespace Template
                 moveDirection.X = -1;
             else if (keys[Key.Right])
                 moveDirection.X = 1;
+
             rotation = Quaternion.Identity;
+
             if (keys[Key.A])
                 rotation *= new Quaternion(0, rad(1), 0);
             if (keys[Key.D])
@@ -358,6 +370,7 @@ namespace Template
                 rotation *= new Quaternion(rad(1), 0, 0);
             if (keys[Key.S])
                 rotation *= new Quaternion(rad(-1), 0, 0);
+
             foreach (sphere s in sphere)
             {
                 s.move((float)gameTime.Elapsed.TotalSeconds * moveDirection, spheres);
@@ -383,6 +396,7 @@ namespace Template
                 d.rotate(rotation, directionalLightsources);
             }
             skye.rotate(rotation);
+
             gameTime.Restart();
             if (keys[Key.E] && !prevkeys[Key.E])
             {
@@ -409,10 +423,14 @@ namespace Template
                 }
             }
         }
+
+        //Change degrees to radians
         public float rad(float degree)
         {
             return (float)(degree * Math.PI / 180);
         }
+
+        //Load shader
         void LoadShader(string name, ShaderType type, int program, out int ID)
         {
             ID = GL.CreateShader(type);

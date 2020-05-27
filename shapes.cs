@@ -7,19 +7,23 @@ using System.Threading.Tasks;
 using OpenTK;
 
 namespace Template
-{
+{ 
 	class shapes : @object
 	{
 		protected Vector3 dimensions;
 		public triangle[] shape;
         public Vector3[] vertices;
-        public void AddToArray(ref List<float> array)
+
+        //Build GLSL functions
+        public void AddToArray(List<float> array)
         {
             index = array.Count;
+
             for (int i = 0; i < shape.Length; ++i)
             {
                 shape[i].changeIndex(array.Count / 3);
             }
+
             for (int i = 0; i < vertices.Length; ++i)
             {
                 array.Add(vertices[i].X);
@@ -27,6 +31,8 @@ namespace Template
                 array.Add(vertices[i].Z);
             }
         }
+
+        //Move shape based on user input
         public override void move(Vector3 direction, float[] array)
         {
             for(int i = 0; i < vertices.Length; ++i)
@@ -37,6 +43,8 @@ namespace Template
                 array[index + i * 3 + 2] = vertices[i].Z;
             }
         }
+
+        //Rotate shape based on user input
         public override void rotate(Quaternion rotate, float[] array)
         {
             for (int i = 0; i < vertices.Length; ++i)
